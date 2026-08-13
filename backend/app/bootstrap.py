@@ -1,6 +1,8 @@
 """Bootstrap initial data: dev organization, admin user, core permissions, admin role."""
 from __future__ import annotations
 
+import os
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -18,7 +20,7 @@ CORE_PERMISSIONS = [
 ]
 
 ADMIN_EMAIL = "admin@isp-erp.example.com"
-ADMIN_PASSWORD = "change-me-now"  # override via env in real deployments
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "change-me-now")
 
 
 def seed_initial_data(db: Session, *, admin_password: str | None = None) -> dict:
