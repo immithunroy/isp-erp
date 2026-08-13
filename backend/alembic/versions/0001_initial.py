@@ -89,19 +89,6 @@ def upgrade() -> None:
     )
 
     op.create_table(
-        "user_roles",
-        sa.Column("user_id", sa.BigInteger, sa.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
-        sa.Column("role_id", sa.BigInteger, sa.ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True),
-    )
-
-    op.create_table(
-        "user_permissions",
-        sa.Column("user_id", sa.BigInteger, sa.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
-        sa.Column("permission_id", sa.BigInteger, sa.ForeignKey("permissions.id", ondelete="CASCADE"), primary_key=True),
-        sa.Column("granted", sa.Boolean, server_default=sa.text("true"), nullable=False),
-    )
-
-    op.create_table(
         "users",
         sa.Column("id", sa.BigInteger, primary_key=True, autoincrement=True),
         sa.Column("organization_id", sa.BigInteger, sa.ForeignKey("organizations.id", ondelete="CASCADE")),
@@ -116,6 +103,19 @@ def upgrade() -> None:
         sa.Column("failed_login_count", sa.Integer, server_default=sa.text("0"), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
+    )
+
+    op.create_table(
+        "user_roles",
+        sa.Column("user_id", sa.BigInteger, sa.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+        sa.Column("role_id", sa.BigInteger, sa.ForeignKey("roles.id", ondelete="CASCADE"), primary_key=True),
+    )
+
+    op.create_table(
+        "user_permissions",
+        sa.Column("user_id", sa.BigInteger, sa.ForeignKey("users.id", ondelete="CASCADE"), primary_key=True),
+        sa.Column("permission_id", sa.BigInteger, sa.ForeignKey("permissions.id", ondelete="CASCADE"), primary_key=True),
+        sa.Column("granted", sa.Boolean, server_default=sa.text("true"), nullable=False),
     )
 
     op.create_table(
