@@ -1,22 +1,8 @@
 from datetime import datetime
-from typing import Annotated
 
-from email_validator import EmailNotValidError, validate_email
-from pydantic import AfterValidator, BaseModel, ConfigDict, Field
+from pydantic import BaseModel, Field
 
-
-def _validate_email(value: str) -> str:
-    try:
-        return validate_email(value, check_deliverability=False).normalized
-    except EmailNotValidError as exc:
-        raise ValueError(str(exc)) from exc
-
-
-Email = Annotated[str, AfterValidator(_validate_email)]
-
-
-class ORMModel(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+from app.schemas.base import Email, ORMModel
 
 
 # ── auth ──────────────────────────────────────────────────────────────
@@ -36,6 +22,21 @@ class RefreshRequest(BaseModel):
     refresh_token: str
 
 
+class PermissionOut(ORMModel):
+    id: int
+    code: str
+    module: str
+    description: str | None = None
+
+
+class RoleOut(ORMModel):
+    id: int
+    name: str
+    code: str
+    is_system: bool = False
+    description: str | None = None
+
+
 class UserOut(ORMModel):
     id: int
     email: Email
@@ -44,33 +45,5 @@ class UserOut(ORMModel):
     is_active: bool
     is_superuser: bool
     last_login_at: datetime | None = None
-    roles: list["RoleOut"] = Field(default_factory=list)
-    permissions: list["PermissionOut"] = Field(default_factory=list)
-
-
-class RoleOut(ORMModel):
-    id: int
-    name: str
-    code: str
-    is_system: bool = False
-
-
-class PermissionOut(ORMModel):
-    id: int
-    code: str
-    module: str
-
-
-class UserCreate(BaseModel):
-    email: Email
-    full_name: str = Field(min_length=1, max_length=200)
-    password: str = Field(min_length=8, max_length=128)
-    phone: str | None = None
-    organization_id: int | None = None
-    branch_id: int | None = None
-    is_superuser: bool = False
-
-
-UserOut.model_rebuild()
-RoleOut.model_rebuild()
-PermissionOut.model_rebuild()
+    roles: list[RoleOut] = Field(default_factory=list)
+    permissions: list[PermissionOut] = Field(default_factory=list)

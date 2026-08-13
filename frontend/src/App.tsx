@@ -2,6 +2,11 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { useAuth } from "./lib/auth";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
+import { Users } from "./pages/Users";
+import { Roles } from "./pages/Roles";
+import { Organizations } from "./pages/Organizations";
+import { AuditLogs } from "./pages/AuditLogs";
+import { Settings } from "./pages/Settings";
 import { AppShell } from "./components/AppShell";
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -25,6 +30,56 @@ export default function App() {
           <Protected>
             <AppShell>
               <Dashboard />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <Protected>
+            <AppShell>
+              <Users />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/roles"
+        element={
+          <Protected>
+            <AppShell>
+              <Roles />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/organizations"
+        element={
+          <Protected>
+            <AppShell>
+              <Organizations />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/audit-logs"
+        element={
+          <Protected>
+            <AppShell>
+              <AuditLogs />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/settings"
+        element={
+          <Protected>
+            <AppShell>
+              <Settings />
             </AppShell>
           </Protected>
         }

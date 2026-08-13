@@ -29,3 +29,5 @@ Thumbs.db
 .idea/
 .vscode/
 *.swp
+# typescript build info
+*.tsbuildinfo

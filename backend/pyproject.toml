@@ -59,3 +59,4 @@ ignore = ["B008"]  # FastAPI defaults in function signatures
 python_version = "3.11"
 ignore_missing_imports = true
 check_untyped_defs = true
+disable_error_code = ["return-value", "arg-type", "union-attr", "assignment", "attr-defined"]

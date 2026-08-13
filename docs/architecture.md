@@ -164,17 +164,28 @@ of TJ boxes / enclosures / splitters, 1k+ field users, large GPS histories:
 
 ## 9. Phasing
 
-Phase 1 (this implementation): repository, Docker, PostgreSQL+PostGIS, Redis,
-FastAPI skeleton, React+TS skeleton, Tailwind, auth foundation (users/roles/
-permissions/RBAC login + token issuance), Alembic, health checks, CI skeleton,
-initial tests.
+### Phase 1 — Foundation (complete)
+Repository, Docker, PostgreSQL+PostGIS, Redis, FastAPI skeleton, React+TS
+skeleton, Tailwind, auth foundation (users/roles/permissions/RBAC login +
+token issuance), Alembic, health checks, CI skeleton, initial tests.
+
+### Phase 2 — Core ERP (complete)
+Organizations (CRUD), Branches (CRUD, org-scoped), Departments (CRUD,
+hierarchical, branch-scoped), Roles (CRUD with permission assignment,
+system-role protection), Permissions (CRUD), Users (CRUD with role/permission
+assignment, superuser protection, password change), Audit Logs (read with
+filtering by user/action/entity_type/entity_id), System Settings (CRUD with
+JSON values). All CRUD operations are audit-logged with previous/new values.
+RBAC enforced on every endpoint. Frontend pages for all entities with
+TanStack Query + React Hook Form + Zod.
 
 Subsequent phases (HRM, Mobile, Customers+Field Service, Network GIS, Trace,
-Inventory, Procurement, Accounting, Billing, Reports) are NOT done in Phase 1
-and will be built incrementally with verification between phases.
+Inventory, Procurement, Accounting, Billing, Reports) will be built
+incrementally with verification between phases.
 
 ## 10. Unknowns / out of scope for now
 
 - Vector tile server (introduce only if performance demands it).
 - Specific face-verification algorithm (Phase 4).
 - Exact chart-of-accounts template (Phase 10).
+- Rate limiting (planned for Phase 12 hardening).

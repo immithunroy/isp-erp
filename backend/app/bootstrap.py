@@ -14,8 +14,16 @@ from app.models.core import Organization, Permission, Role, RolePermission, User
 CORE_PERMISSIONS = [
     ("core:users:read", "core", "Read users"),
     ("core:users:write", "core", "Create/update users"),
-    ("core:roles:manage", "core", "Manage roles and permissions"),
-    ("core:settings:manage", "core", "Manage system settings"),
+    ("core:roles:read", "core", "Read roles"),
+    ("core:roles:write", "core", "Manage roles and permissions"),
+    ("core:organizations:read", "core", "Read organizations"),
+    ("core:organizations:write", "core", "Create/update organizations"),
+    ("core:branches:read", "core", "Read branches"),
+    ("core:branches:write", "core", "Create/update branches"),
+    ("core:departments:read", "core", "Read departments"),
+    ("core:departments:write", "core", "Create/update departments"),
+    ("core:settings:read", "core", "Read system settings"),
+    ("core:settings:write", "core", "Manage system settings"),
     ("core:audit:read", "core", "Read audit logs"),
 ]
 
