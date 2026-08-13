@@ -1,0 +1,1885 @@
+# ISP OPERATIONS ERP
+
+## Master Development Specification for OpenCode
+
+---
+
+# 1. PROJECT OBJECTIVE
+
+Build a production-grade ISP Operations ERP for managing the internal operations of an Internet Service Provider.
+
+This is NOT an ISP AAA/billing platform.
+
+The ERP must NOT implement:
+
+* PPPoE server
+* Hotspot
+* RADIUS
+* Bandwidth authentication
+* Internet package management
+* Internet speed enforcement
+* Router-based subscriber authentication
+* MikroTik PPPoE user management
+* Retail bandwidth package billing
+
+Those functions are outside the scope of this ERP.
+
+The ERP will focus on:
+
+1. HRM
+2. Employee mobile application
+3. Facial attendance
+4. GPS attendance
+5. Employee field tracking
+6. Customer/subscriber records
+7. Customer location mapping
+8. Accounting
+9. Operational billing where required
+10. Inventory
+11. Procurement
+12. Field service management
+13. Network infrastructure management
+14. Fiber network mapping
+15. Fiber core management
+16. TJ Box management
+17. Enclosure management
+18. Splitter management
+19. OLT/site management
+20. Network topology
+21. Customer-to-network relationship mapping
+22. GIS mapping
+23. Reports
+24. Notifications
+25. Audit logs
+
+The most important differentiator of this ERP is:
+
+> A GIS-based ISP physical network management system capable of managing thousands of customers and thousands of physical network assets.
+
+---
+
+# 2. CORE ARCHITECTURE
+
+Use a modular monolith.
+
+Do NOT build microservices unless explicitly requested.
+
+Architecture:
+
+```
+                WEB
+                 │
+                 ▼
+      React + TypeScript
+                 │
+                 ▼
+          REST API
+                 │
+                 ▼
+             FastAPI
+                 │
+      ┌──────────┴──────────┐
+      │                     │
+```
+
+Business Services       GIS Services
+│                     │
+└──────────┬──────────┘
+│
+SQLAlchemy
+│
+▼
+PostgreSQL + PostGIS
+│
+▼
+Redis
+
+Mobile:
+
+React Native + Expo
+│
+▼
+FastAPI API
+│
+▼
+PostgreSQL/PostGIS
+
+---
+
+# 3. TECHNOLOGY STACK
+
+## Web Frontend
+
+* React
+* TypeScript
+* Vite
+* Tailwind CSS
+* shadcn/ui
+* React Router
+* TanStack Query
+* React Hook Form
+* Zod
+* Zustand only when required
+* Recharts
+
+Use strict TypeScript.
+
+Avoid `any`.
+
+## Backend
+
+* Python
+* FastAPI
+* Pydantic
+* SQLAlchemy 2.x
+* Alembic
+
+## Database
+
+* PostgreSQL
+* PostGIS
+
+PostGIS is mandatory because geographic network mapping is a core feature.
+
+## Cache / Jobs
+
+* Redis
+* Celery when required
+
+## Mobile
+
+* React Native
+* Expo
+* TypeScript
+
+## Mapping
+
+Prefer:
+
+* Leaflet
+* OpenStreetMap
+* PostGIS
+
+Design the mapping layer so another map provider can be introduced later.
+
+## Deployment
+
+* Docker
+* Docker Compose
+* Caddy or Nginx
+* Ubuntu LTS / Debian Stable
+
+## CI/CD
+
+* GitHub Actions
+
+## Testing
+
+Frontend:
+
+* Vitest
+* React Testing Library
+
+Backend:
+
+* Pytest
+
+---
+
+# 4. SCALE REQUIREMENT
+
+The application must be designed for at least:
+
+* 10,000+ customers
+* 10,000+ network assets
+* 100,000+ fiber cores
+* 1,000+ TJ Boxes
+* 1,000+ enclosures
+* 1,000+ splitters
+* 1,000+ network locations
+* 1,000+ employees/field users
+* Large GPS history datasets
+
+The architecture should allow significantly more growth.
+
+Do NOT design the database as if it will contain only hundreds of records.
+
+Use proper:
+
+* indexes
+* foreign keys
+* spatial indexes
+* pagination
+* filtering
+* lazy loading
+* database queries
+* caching where appropriate
+
+Never load thousands of records unnecessarily into the browser.
+
+---
+
+# 5. MODULES
+
+The application should contain the following modules.
+
+## Core
+
+* Authentication
+* Users
+* Roles
+* Permissions
+* Organization
+* Branches
+* Departments
+* Audit Logs
+* System Settings
+
+## HRM
+
+* Employees
+* Departments
+* Designations
+* Employment history
+* Shifts
+* Leave
+* Holidays
+* Attendance
+* Payroll-ready structure
+* Employee documents
+
+## Mobile Workforce
+
+* Employee mobile application
+* GPS attendance
+* Facial attendance
+* Field tracking
+* Customer visits
+* Field jobs
+* GPS collection
+* Photo collection
+* Offline synchronization
+
+## Customer Management
+
+* Customer records
+* Customer location
+* Customer service information
+* Installation information
+* Customer-to-network mapping
+* Customer visit history
+
+IMPORTANT:
+
+Customer management is NOT the same as ISP AAA.
+
+Do not implement PPPoE, hotspot, RADIUS or bandwidth enforcement.
+
+## Accounting
+
+* Chart of Accounts
+* Journal
+* Ledger
+* Accounts Receivable
+* Accounts Payable
+* Expenses
+* Income
+* Assets
+* Liabilities
+* Equity
+* Bank accounts
+* Cash accounts
+* Financial reports
+
+## Operational Billing
+
+Only implement billing features required for ERP operations.
+
+Examples:
+
+* Installation charges
+* Service charges
+* Equipment charges
+* Field service charges
+* Corporate invoices where required
+* Operational invoices
+
+Do NOT implement:
+
+* PPPoE billing
+* bandwidth package billing
+* retail ISP package billing
+
+## Inventory
+
+* Products
+* Equipment
+* Warehouses
+* Suppliers
+* Purchase
+* Receiving
+* Transfer
+* Issue
+* Return
+* Stock adjustment
+* Serial numbers
+* MAC addresses
+* Equipment assignment
+
+## Procurement
+
+* Suppliers
+* Purchase requests
+* Purchase orders
+* Goods receiving
+* Purchase invoices
+* Approval workflows
+
+## Field Service
+
+* Jobs
+* Work orders
+* Assignments
+* Technician visits
+* Installation
+* Repair
+* Maintenance
+* Photos
+* GPS
+* Customer signature where required
+* Completion approval
+
+## Network Infrastructure
+
+* OLT
+* ODF
+* Fiber cable
+* Fiber segment
+* Fiber core
+* TJ Box
+* Enclosure
+* Splitter
+* Distribution box
+* Pole
+* Manhole
+* POP
+* Data center/site
+* Cabinet
+* Rack
+* Power equipment
+
+## GIS
+
+* Customer locations
+* Employee locations
+* Network assets
+* Fiber routes
+* Fiber segments
+* Network topology
+* Spatial search
+* Distance calculations
+* Nearby assets
+* Network trace
+
+---
+
+# 6. NETWORK GIS IS THE PRIMARY FEATURE
+
+The GIS/network mapping system is one of the most important modules.
+
+The system must allow an administrator or network engineer to visually manage the complete physical network.
+
+Map objects include:
+
+* Customers
+* OLTs
+* POPs
+* ODFs
+* TJ Boxes
+* Enclosures
+* Splitters
+* Distribution boxes
+* Fiber cables
+* Fiber cores
+* Poles
+* Manholes
+* Other network assets
+
+Each physical asset should have:
+
+* unique asset ID
+* asset type
+* name
+* status
+* latitude
+* longitude
+* spatial geometry where applicable
+* installation date
+* owner
+* responsible department
+* photos
+* documents
+* notes
+* related assets
+
+---
+
+# 7. CUSTOMER GIS
+
+Every customer can have a geographic location.
+
+Store:
+
+* latitude
+* longitude
+* accuracy
+* timestamp
+* source
+* collected by
+* collection method
+* address
+* location history
+
+The customer location must be represented on the map.
+
+Do not overwrite historical locations.
+
+Maintain location history.
+
+Example:
+
+Customer
+↓
+Customer Location History
+↓
+Current Location
+
+---
+
+# 8. GPS COLLECTION
+
+GPS coordinates should primarily be collected through the employee mobile application.
+
+Example:
+
+Field Technician
+↓
+Customer Visit
+↓
+Open Customer
+↓
+Capture GPS
+↓
+GPS Accuracy Validation
+↓
+Capture Photo
+↓
+Submit
+↓
+Backend
+↓
+PostGIS
+
+Every GPS record should contain:
+
+* latitude
+* longitude
+* accuracy
+* timestamp
+* employee
+* device
+* source
+* related entity
+* activity
+
+Never trust GPS blindly.
+
+Record GPS accuracy.
+
+Example:
+
+accuracy = 7.2 meters
+
+Allow configurable thresholds.
+
+Example:
+
+maximum acceptable accuracy = 50 meters
+
+If accuracy is poor:
+
+* reject
+  OR
+* accept with warning
+  OR
+* flag for review
+
+Make this configurable.
+
+---
+
+# 9. EMPLOYEE GPS
+
+Employees/technicians may collect GPS information during field work.
+
+Support:
+
+* Attendance GPS
+* Customer visit GPS
+* Job GPS
+* Asset installation GPS
+* Asset inspection GPS
+
+Continuous employee tracking must NOT be enabled by default.
+
+Tracking must be:
+
+* policy controlled
+* permission controlled
+* auditable
+* clearly disclosed
+
+---
+
+# 10. FACIAL ATTENDANCE
+
+Mobile attendance workflow:
+
+Employee
+↓
+Mobile App
+↓
+GPS
+↓
+Face Capture
+↓
+Face Verification
+↓
+Backend Validation
+↓
+Attendance Record
+
+Attendance record:
+
+* employee
+* check-in/check-out
+* timestamp
+* latitude
+* longitude
+* GPS accuracy
+* face verification status
+* device
+* IP where available
+* attendance type
+* notes
+
+Support:
+
+* Check-in
+* Check-out
+* Break
+* Field duty
+* Manual correction
+* Approval
+
+Manual attendance correction must be audited.
+
+---
+
+# 11. MOBILE APPLICATION
+
+Build a React Native + Expo mobile application.
+
+Primary users:
+
+* Field technicians
+* Installers
+* Network engineers
+* Employees
+
+Screens:
+
+1. Login
+2. Dashboard
+3. Attendance
+4. GPS
+5. Assigned jobs
+6. Customer list
+7. Customer details
+8. Customer location capture
+9. Network asset capture
+10. TJ Box capture
+11. Enclosure capture
+12. Splitter capture
+13. Fiber survey
+14. Photo capture
+15. Equipment scan
+16. Job completion
+17. Notifications
+18. Profile
+
+---
+
+# 12. OFFLINE-FIRST FIELD WORK
+
+The mobile application must tolerate unreliable Internet connectivity.
+
+Example:
+
+Technician collects:
+
+* GPS
+* customer data
+* photos
+* network asset
+* work report
+
+If Internet is unavailable:
+
+Store locally.
+
+When Internet returns:
+
+Synchronize automatically.
+
+Use:
+
+* local queue
+* sync status
+* retry
+* idempotency
+* conflict handling
+
+Never duplicate records because of retries.
+
+---
+
+# 13. FIBER CABLE MANAGEMENT
+
+Fiber cable is a physical network object.
+
+Fields:
+
+* Cable ID
+* Name
+* Cable type
+* Core count
+* Start point
+* End point
+* Route geometry
+* Length
+* Installation date
+* Status
+* Owner
+* Notes
+
+Fiber cable must support:
+
+* 2 core
+* 4 core
+* 6 core
+* 12 core
+* 24 core
+* 48 core
+* 72 core
+* 96 core
+* 144 core
+* configurable core counts
+
+Do not hard-code the core count.
+
+---
+
+# 14. FIBER CORE MANAGEMENT
+
+Every cable contains individual cores.
+
+Example:
+
+48-core cable:
+
+Core 1
+Core 2
+Core 3
+...
+Core 48
+
+Each core should have:
+
+* core number
+* color
+* status
+* source
+* destination
+* splice relationship
+* utilization
+* service/customer relationship
+* notes
+
+Core statuses may include:
+
+* Available
+* Reserved
+* In Use
+* Faulty
+* Dark
+* Spliced
+* Retired
+
+Make statuses configurable where appropriate.
+
+---
+
+# 15. FIBER SPLICE
+
+Support physical fiber splicing.
+
+Example:
+
+Cable A
+Core 12
+↓
+Splice
+↓
+Cable B
+Core 24
+
+Splice record:
+
+* enclosure
+* source cable
+* source core
+* destination cable
+* destination core
+* splice loss
+* technician
+* timestamp
+* notes
+
+A network engineer should be able to trace fiber connectivity through splice points.
+
+---
+
+# 16. TJ BOX
+
+TJ Box is a physical GIS/network asset.
+
+Fields:
+
+* Asset ID
+* Name
+* Type
+* Capacity
+* Latitude
+* Longitude
+* Geometry
+* Accuracy
+* Installation date
+* Status
+* Photo
+* Description
+
+Relationships:
+
+TJ Box
+├── Fiber cables
+├── Fiber cores
+├── Splitters
+├── Enclosures
+└── Customers where applicable
+
+---
+
+# 17. ENCLOSURE
+
+Fields:
+
+* Asset ID
+* Name
+* Type
+* Location
+* GPS
+* Capacity
+* Status
+* Installation date
+* Photo
+* Notes
+
+Relationships:
+
+Enclosure
+├── Fiber cables
+├── Fiber cores
+├── Splices
+└── Splitters
+
+---
+
+# 18. SPLITTER
+
+Support configurable splitter ratios.
+
+Examples:
+
+1:2
+1:4
+1:8
+1:16
+1:32
+1:64
+
+Fields:
+
+* Splitter ID
+* Ratio
+* Input
+* Output ports
+* Location
+* Parent asset
+* GPS
+* Status
+* Installation date
+* Notes
+
+Represent splitter ports individually.
+
+Example:
+
+Splitter 1:8
+
+Input
+Output 1
+Output 2
+Output 3
+...
+Output 8
+
+---
+
+# 19. NETWORK TOPOLOGY
+
+Model physical relationships.
+
+Example:
+
+OLT
+↓
+ODF
+↓
+Fiber Cable
+↓
+Enclosure
+↓
+Fiber Core
+↓
+TJ Box
+↓
+Splitter
+↓
+Distribution Fiber
+↓
+Customer
+
+The topology must be represented in the database.
+
+Do not make the topology dependent only on map coordinates.
+
+GIS represents physical location.
+
+Topology represents logical/physical connectivity.
+
+Both must coexist.
+
+# 20. NETWORK TRACE
+
+Implement network trace functionality.
+
+Example:
+
+Select Customer
+↓
+Show connected splitter
+↓
+Show TJ Box
+↓
+Show fiber cable
+↓
+Show fiber core
+↓
+Show splice
+↓
+Show upstream fiber
+↓
+Show ODF
+↓
+Show OLT
+
+Also support reverse trace:
+
+OLT
+→ ODF
+→ Fiber
+→ Enclosure
+→ TJ Box
+→ Splitter
+→ Customer
+
+The trace must be based on database relationships, not simply geographic proximity.
+
+# 21. MAP FEATURES
+
+The web map must support:
+
+* Zoom
+* Pan
+* Marker clustering
+* Layer control
+* Asset filtering
+* Search
+* Draw fiber route
+* Edit fiber route
+* Select asset
+* Asset details
+* Customer search
+* Nearby assets
+* Distance measurement
+* Network trace
+* Toggle layers
+
+Layers:
+
+Customers
+OLTs
+POPs
+ODFs
+TJ Boxes
+Enclosures
+Splitters
+Fiber cables
+Poles
+Manholes
+Employees
+Other assets
+
+# 22. PERFORMANCE REQUIREMENTS FOR MAP
+
+The map may contain thousands of objects.
+
+Do NOT load every object into the browser at once.
+
+Use:
+
+* viewport/bounding-box queries
+* clustering
+* pagination
+* spatial indexes
+* GeoJSON
+* vector tiles where required
+* lazy loading
+
+Example:
+
+When the user moves the map:
+
+Frontend
+↓
+Bounding box
+↓
+API
+↓
+PostGIS spatial query
+↓
+Only visible assets returned
+
+Use spatial indexes such as GiST.
+
+---
+
+# 23. SPATIAL SEARCH
+
+Implement:
+
+* nearest asset
+* customers within radius
+* employees within radius
+* assets within radius
+* customers near fiber
+* TJ Boxes near customer
+* splitters near customer
+* network assets within map bounds
+
+Examples:
+
+"Find all customers within 100 meters."
+
+"Find nearest TJ Box."
+
+"Show all assets inside current map."
+
+"Find fiber route within 50 meters of customer."
+
+# 24. INVENTORY
+
+Inventory must integrate with network infrastructure.
+
+Example:
+
+Inventory item:
+
+ONU
+Serial: ABC123
+
+can be:
+
+Purchased
+↓
+Warehouse
+↓
+Issued to Technician
+↓
+Installed at Customer
+↓
+Linked to Customer
+↓
+Network Asset
+
+For network assets, support:
+
+* serial number
+* model
+* manufacturer
+* MAC address
+* purchase cost
+* supplier
+* warehouse
+* current location
+* status
+* assigned employee
+* installed location
+
+---
+
+# 25. ACCOUNTING
+
+Implement proper double-entry accounting.
+
+Core entities:
+
+* Chart of Accounts
+* Account
+* Journal
+* Journal Entry
+* Journal Line
+* Ledger
+* Fiscal Period
+
+Rule:
+
+Total Debit = Total Credit
+
+Support:
+
+* Income
+* Expense
+* Asset
+* Liability
+* Equity
+* Cash
+* Bank
+* Accounts Receivable
+* Accounts Payable
+
+Financial records should be immutable after posting.
+
+Corrections must use reversal transactions.
+
+Never delete posted financial transactions.
+
+# 26. HRM
+
+Employee:
+
+* Employee ID
+* Name
+* Photo
+* Phone
+* Email
+* Address
+* Emergency contact
+* Department
+* Designation
+* Joining date
+* Employment status
+* Supervisor
+* Branch
+* Documents
+
+HR features:
+
+* Employee management
+* Department
+* Designation
+* Shift
+* Leave
+* Holiday
+* Attendance
+* Employee documents
+* Employment history
+
+# 27. FIELD SERVICE
+
+Create field service management.
+
+Work order:
+
+* Work order ID
+* Customer
+* Job type
+* Priority
+* Assigned employee
+* Scheduled date
+* Status
+* GPS
+* Photos
+* Equipment used
+* Notes
+* Completion report
+
+Statuses:
+
+* Open
+* Assigned
+* Accepted
+* In Progress
+* Completed
+* Cancelled
+* Approved
+
+# 28. CUSTOMER RECORD
+
+Customer management is operational only.
+
+Customer:
+
+* Customer ID
+* Name
+* Phone
+* Email
+* Address
+* GPS
+* Installation date
+* Status
+* Assigned technician
+* Network relationship
+* Notes
+
+Do not implement:
+
+* PPPoE credentials
+* RADIUS credentials
+* Hotspot credentials
+* bandwidth packages
+* bandwidth enforcement
+* AAA accounting
+
+# 29. PROCUREMENT
+
+Support:
+
+* Suppliers
+* Purchase Requests
+* Purchase Orders
+* Goods Receiving
+* Purchase Invoice
+* Approval
+* Supplier payments
+
+Integrate procurement with:
+
+Inventory
+Accounting
+
+# 30. AUDIT LOG
+
+Audit all important changes.
+
+Record:
+
+* user
+* action
+* entity
+* entity ID
+* timestamp
+* IP
+* device where available
+* previous value
+* new value
+
+Audit:
+
+* customer location changes
+* GPS corrections
+* attendance corrections
+* inventory changes
+* financial changes
+* network topology changes
+* asset changes
+* employee changes
+
+# 31. SECURITY
+
+Implement:
+
+* RBAC
+* secure authentication
+* password hashing
+* refresh tokens
+* authorization checks
+* rate limiting
+* input validation
+* secure file upload
+* audit logging
+* secret management
+
+Never trust client-side authorization.
+
+Every protected backend endpoint must enforce permissions.
+
+# 32. DATABASE
+
+Use PostgreSQL + PostGIS.
+
+Important spatial columns:
+
+Customer:
+POINT
+
+Employee GPS:
+POINT
+
+TJ Box:
+POINT
+
+Enclosure:
+POINT
+
+Splitter:
+POINT
+
+OLT:
+POINT
+
+POP:
+POINT
+
+Fiber:
+LINESTRING
+
+Use SRID 4326 for geographic coordinates unless another projection is explicitly required.
+
+Create spatial indexes.
+
+Use geography/geometry types appropriately.
+
+---
+
+# 33. API
+
+All APIs use:
+
+/api/v1/
+
+Example:
+
+GET /api/v1/customers
+
+GET /api/v1/customers/{id}
+
+GET /api/v1/network/assets
+
+GET /api/v1/network/assets/{id}
+
+GET /api/v1/network/fiber
+
+GET /api/v1/network/fiber/{id}
+
+GET /api/v1/network/tj-boxes
+
+GET /api/v1/network/enclosures
+
+GET /api/v1/network/splitters
+
+GET /api/v1/network/map?bbox=...
+
+GET /api/v1/network/trace/customer/{id}
+
+Use:
+
+* pagination
+* filtering
+* sorting
+* authorization
+* structured errors
+
+# 34. FRONTEND
+
+Desktop ERP interface.
+
+Main navigation:
+
+Dashboard
+
+HRM
+├── Employees
+├── Departments
+├── Designations
+├── Attendance
+├── Leave
+└── Shifts
+
+Customers
+├── Customers
+├── Locations
+└── Network Relationships
+
+Field Service
+├── Jobs
+├── Assignments
+└── Visits
+
+Network
+├── Map
+├── OLT
+├── POP
+├── ODF
+├── Fiber
+├── TJ Boxes
+├── Enclosures
+├── Splitters
+├── Splices
+└── Network Trace
+
+Inventory
+├── Products
+├── Warehouses
+├── Stock
+├── Equipment
+└── Transactions
+
+Procurement
+├── Suppliers
+├── Purchase Requests
+├── Purchase Orders
+└── Receiving
+
+Accounting
+├── Chart of Accounts
+├── Journal
+├── Ledger
+├── Receivables
+├── Payables
+└── Reports
+
+Reports
+
+Settings
+
+# 35. MOBILE APP
+
+Mobile navigation:
+
+Dashboard
+
+Attendance
+
+Jobs
+
+Customers
+
+Map
+
+Network Assets
+
+GPS Capture
+
+Photos
+
+Equipment
+
+Notifications
+
+Profile
+
+# 36. DOCKER
+
+Docker Compose should contain at minimum:
+
+postgres
+redis
+backend
+frontend
+
+Optional:
+
+worker
+scheduler
+caddy
+
+PostgreSQL image must have PostGIS support.
+
+Use health checks.
+
+Use persistent volumes.
+
+Never store production database data only inside ephemeral containers.
+
+# 37. BACKUP
+
+Design database backup strategy.
+
+Support:
+
+* scheduled PostgreSQL backups
+* backup retention
+* restore documentation
+
+Never assume Docker volumes alone are a backup.
+
+# 38. TESTING
+
+Backend:
+
+* Pytest
+* API tests
+* business logic tests
+* billing/accounting tests
+* GIS tests
+
+Frontend:
+
+* Vitest
+* React Testing Library
+
+Critical tests:
+
+* accounting debit/credit
+* inventory transactions
+* GPS accuracy validation
+* attendance rules
+* proration if operational billing is used
+* network topology
+* fiber trace
+* GIS bounding-box query
+* customer-network relationships
+
+# 39. PROJECT DEVELOPMENT PHASES
+
+Do NOT build the entire ERP in one operation.
+
+## PHASE 1 — FOUNDATION
+
+Build:
+
+* repository
+* Docker
+* PostgreSQL + PostGIS
+* Redis
+* FastAPI
+* React
+* TypeScript
+* Tailwind
+* authentication
+* RBAC foundation
+* database migration
+* health checks
+* CI/CD foundation
+
+STOP after Phase 1.
+
+---
+
+## PHASE 2 — CORE ERP
+
+Build:
+
+* organization
+* users
+* roles
+* permissions
+* audit logs
+* system settings
+
+STOP.
+
+---
+
+## PHASE 3 — HRM
+
+Build:
+
+* employees
+* departments
+* designations
+* shifts
+* holidays
+* leave
+* attendance foundation
+
+STOP.
+
+---
+
+## PHASE 4 — MOBILE
+
+Build:
+
+* React Native
+* Expo
+* employee login
+* GPS
+* attendance
+* facial verification architecture
+* offline storage
+* synchronization
+
+STOP.
+
+---
+
+## PHASE 5 — CUSTOMERS + FIELD SERVICE
+
+Build:
+
+* customer records
+* customer GPS
+* field jobs
+* technician assignment
+* customer visits
+* photos
+* location history
+
+STOP.
+
+---
+
+## PHASE 6 — NETWORK GIS
+
+Build:
+
+* map
+* OLT
+* POP
+* ODF
+* TJ Box
+* enclosure
+* splitter
+* poles
+* manholes
+* fiber cables
+* fiber cores
+* splicing
+* network topology
+
+STOP.
+
+---
+
+## PHASE 7 — NETWORK TRACE
+
+Build:
+
+* customer → network trace
+* OLT → customer trace
+* fiber core trace
+* splice trace
+* network visualization
+
+STOP.
+
+---
+
+## PHASE 8 — INVENTORY
+
+Build:
+
+* products
+* warehouses
+* suppliers
+* stock
+* serial numbers
+* equipment
+* equipment assignment
+* network asset integration
+
+STOP.
+
+---
+
+## PHASE 9 — PROCUREMENT
+
+Build:
+
+* suppliers
+* purchase requests
+* purchase orders
+* receiving
+* purchase invoices
+
+STOP.
+
+---
+
+## PHASE 10 — ACCOUNTING
+
+Build:
+
+* chart of accounts
+* journal
+* ledger
+* receivables
+* payables
+* expenses
+* income
+* financial reports
+
+STOP.
+
+---
+
+## PHASE 11 — OPERATIONAL BILLING
+
+Only implement billing required for non-AAA ERP operations.
+
+Do NOT introduce PPPoE/package/RADIUS billing.
+
+STOP.
+
+---
+
+## PHASE 12 — REPORTING + PRODUCTION HARDENING
+
+Build:
+
+* dashboards
+* reports
+* exports
+* performance optimization
+* security review
+* monitoring
+* backup
+* CI/CD
+* documentation
+
+# 40. CRITICAL AI AGENT RULES
+
+Before modifying code:
+
+1. Inspect the repository.
+2. Understand existing architecture.
+3. Reuse existing code.
+4. Never create duplicate functionality.
+5. Check database relationships before creating models.
+6. Create migrations for schema changes.
+7. Write tests for important business logic.
+8. Run tests.
+9. Run TypeScript checks.
+10. Run Python linting.
+11. Fix errors before continuing.
+
+Never:
+
+* hard-code secrets
+* hard-code company information
+* hard-code network assets
+* create fake data as real functionality
+* put business logic inside React components
+* put business logic directly inside FastAPI routes
+* access PostgreSQL directly from frontend
+* delete financial transactions
+* silently overwrite GPS history
+* silently overwrite network topology
+* load thousands of GIS objects unnecessarily into the browser
+
+---
+
+# 41. GIS-SPECIFIC AI AGENT RULE
+
+Treat GIS and network topology as separate but connected concepts.
+
+GIS answers:
+
+"Where is it?"
+
+Topology answers:
+
+"What is it connected to?"
+
+Never infer network connectivity only from geographic proximity.
+
+Example:
+
+Two fiber cables may physically cross each other but have NO connection.
+
+Therefore:
+
+Physical location ≠ network connection.
+
+All actual connections must be explicitly represented in the database.
+
+---
+
+# 42. NETWORK SCALE RULE
+
+The application must remain usable with thousands of:
+
+* customers
+* TJ Boxes
+* enclosures
+* splitters
+* fiber segments
+* network assets
+
+Use database-side filtering.
+
+Use spatial indexes.
+
+Use map bounding boxes.
+
+Use clustering.
+
+Use lazy loading.
+
+Do not send the entire network database to the browser.
+
+---
+
+# 43. FIRST TASK
+
+Do NOT build HRM, Accounting, Inventory or Network GIS immediately.
+
+First inspect the repository.
+
+Then:
+
+1. Analyze this specification.
+2. Create architecture documentation.
+3. Create database/entity relationship design.
+4. Create project structure.
+5. Create Docker Compose.
+6. Create PostgreSQL + PostGIS.
+7. Create Redis.
+8. Create FastAPI skeleton.
+9. Create React + TypeScript skeleton.
+10. Create authentication foundation.
+11. Create Alembic migrations.
+12. Create health checks.
+13. Create `.env.example`.
+14. Create README.
+15. Create initial tests.
+16. Verify Docker services.
+17. Verify frontend ↔ backend communication.
+18. Run all tests and checks.
+
+Then STOP.
+
+Report:
+
+* architecture
+* project structure
+* database design
+* Docker services
+* implemented functionality
+* tests
+* assumptions
+* remaining work
+
+Wait for the next instruction.
+
+Do not automatically continue to Phase 2.
+
+---
+
+# 44. DEFINITION OF DONE
+
+A feature is complete only when:
+
+* database model exists
+* migration exists
+* backend service exists
+* API exists
+* authorization exists
+* frontend exists
+* validation exists
+* error handling exists
+* tests exist
+* documentation exists
+* Docker environment works
+
+For GIS features additionally require:
+
+* PostGIS geometry
+* spatial index
+* map visualization
+* spatial API
+* pagination/lazy loading
+* proper coordinate validation
+
+For financial features additionally require:
+
+* Decimal-safe calculations
+* transaction safety
+* audit trail
+* reversal mechanism
+* automated tests
+
+For network features additionally require:
+
+* explicit topology relationships
+* asset relationships
+* fiber/core relationships
+* traceability
+* GIS location
+
+# FINAL ENGINEERING PRINCIPLE
+
+Build this as a real ISP Operations ERP.
+
+The ERP is NOT an AAA system.
+
+The ERP is NOT a PPPoE management system.
+
+The ERP is NOT a hotspot system.
+
+The ERP is NOT a bandwidth enforcement system.
+
+The primary purpose is:
+
+HRM
++
+Field Workforce
++
+Accounting
++
+Inventory
++
+Procurement
++
+Customer Operations
++
+GIS
++
+Physical Fiber Network Management
++
+Network Asset Management
++
+Network Topology
+
+The GIS/network module must be capable of managing thousands of customers and physical network assets while maintaining accurate geographic locations and explicit physical network relationships.
+
+Build incrementally.
+
+Do not rush.
+
+Do not change the architecture without justification.
+
+Do not proceed to the next major phase without verification of the current phase.
