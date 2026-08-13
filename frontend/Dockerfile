@@ -1,16 +1,13 @@
 FROM node:20-alpine AS builder
 WORKDIR /app
+ENV VITE_API_BASE_URL=/api/v1
 COPY package.json package-lock.json* ./
-RUN npm install
+RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:20-alpine
-WORKDIR /app
-ENV NODE_ENV=production
-COPY --from=builder /app/package.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/vite.config.ts ./
-EXPOSE 5173
-CMD ["npm", "run", "preview"]
+FROM nginx:alpine
+COPY --from=builder /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+EXPOSE 80
+CMD ["nginx", "-g", "daemon off;"]
