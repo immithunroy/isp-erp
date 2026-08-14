@@ -27,7 +27,7 @@ CORE_PERMISSIONS = [
     ("core:audit:read", "core", "Read audit logs"),
 ]
 
-ADMIN_EMAIL = "admin@isp-erp.example.com"
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@isp-erp.example.com")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "change-me-now")
 
 
