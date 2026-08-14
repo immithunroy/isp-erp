@@ -1,7 +1,4 @@
 """Phase 2 — Core ERP CRUD + permission tests."""
-from app.models.core import User
-from app.core.security import hash_password
-from app.services import organization_service, role_service, user_service
 
 
 def test_create_and_list_organizations(seeded_client, auth_headers, db_session):
@@ -125,7 +122,6 @@ def test_create_and_list_permissions(seeded_client, auth_headers):
         headers=auth_headers,
     )
     assert resp.status_code == 201
-    perm_id = resp.json()["id"]
 
     resp = seeded_client.get("/api/v1/permissions", headers=auth_headers)
     assert resp.status_code == 200
