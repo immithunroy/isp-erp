@@ -63,7 +63,7 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
 |---|---|
 | URL | http://103.177.54.6:8040 |
 | Swagger docs | http://103.177.54.6:8040/docs |
-| Admin email | `admin@isp-erp.example.com` |
+| Admin email | `mithun@qbinternet.com` |
 | Admin password | stored in `/opt/isp-erp/.env` on the server |
 
 ## Repository layout
