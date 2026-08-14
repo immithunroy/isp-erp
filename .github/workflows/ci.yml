@@ -1,11 +1,19 @@
-name: ci
+name: CI/CD
 
 on:
   push:
-    branches: [master, main]
+    branches: [main]
   pull_request:
+    branches: [main]
+
+concurrency:
+  group: cicd-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
+  # ───────────────────────────────────────────────────────────────────
+  # FRONTEND: typecheck → lint → test → build
+  # ───────────────────────────────────────────────────────────────────
   frontend:
     runs-on: ubuntu-latest
     defaults:
@@ -24,11 +32,14 @@ jobs:
       - run: npm test -- --run
       - run: npm run build
 
+  # ───────────────────────────────────────────────────────────────────
+  # BACKEND: lint → migrate → test (against PostGIS container)
+  # ───────────────────────────────────────────────────────────────────
   backend:
     runs-on: ubuntu-latest
     services:
       db:
-        image: postgis/postgis:16-3.4
+        image: postgis/postgis:18-3.6-alpine
         env:
           POSTGRES_PASSWORD: isperp
           POSTGRES_USER: isperp
@@ -54,7 +65,7 @@ jobs:
       DATABASE_URL: postgresql+psycopg://isperp:isperp@localhost:5432/isperp_test
       TEST_DATABASE_URL: postgresql+psycopg://isperp:isperp@localhost:5432/isperp_test
       REDIS_URL: redis://localhost:6379/0
-      JWT_SECRET: ci-test-secret-please-override-32-bytes-xxxxxx
+      JWT_SECRET: ci-test-secret-please-override-32-bytes-xxxxxxxxxxxx
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -64,3 +75,73 @@ jobs:
       - run: ruff check .
       - run: alembic upgrade head
       - run: pytest -q
+
+  # ───────────────────────────────────────────────────────────────────
+  # DEPLOY: only on push to main, after both jobs pass
+  # SSH into the production host, pull, build, migrate, verify
+  # ───────────────────────────────────────────────────────────────────
+  deploy:
+    needs: [frontend, backend]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install sshpass
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq sshpass
+
+      - name: Deploy to production
+        env:
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+          SSH_PASS: ${{ secrets.DEPLOY_PASS }}
+        run: |
+          set -euo pipefail
+          SSHPASS="$SSH_PASS" sshpass -e ssh \
+            -o StrictHostKeyChecking=no \
+            -o UserKnownHostsFile=/dev/null \
+            "$SSH_USER@$SSH_HOST" bash -s <<'DEPLOY'
+          set -euo pipefail
+          cd /opt/isp-erp
+          echo "=== git pull ==="
+          git pull --ff-only
+          echo "=== docker compose build ==="
+          docker compose build 2>&1 | tail -5
+          echo "=== docker compose up -d ==="
+          docker compose up -d --force-recreate 2>&1 | tail -15
+          echo "=== wait backend healthy ==="
+          for i in $(seq 1 60); do
+            if docker compose exec -T backend python -c \
+              "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/api/v1/health/live').status==200 else 1)" \
+              2>/dev/null; then
+              echo "backend live after ${i}s"
+              break
+            fi
+            sleep 2
+          done
+          echo "=== alembic migrate ==="
+          docker compose exec -T backend alembic upgrade head 2>&1 | tail -5
+          echo "=== seed (idempotent) ==="
+          docker compose exec -T backend python -c \
+            "from app.db.session import SessionLocal; from app.bootstrap import seed_initial_data; s=SessionLocal(); seed_initial_data(s); s.close()" \
+            2>&1 | tail -3
+          echo "=== verify ==="
+          sleep 3
+          echo -n "live: ";   curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8040/api/v1/health/live
+          echo -n "ready: ";  curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8040/api/v1/health/ready
+          echo -n "spa: ";    curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8040/
+          echo -n "docs: ";   curl -s -o /dev/null -w '%{http_code}\n' http://localhost:8040/docs
+          echo "=== DONE ==="
+          DEPLOY
+
+      - name: Verify external HTTPS
+        env:
+          SSH_HOST: ${{ secrets.DEPLOY_HOST }}
+          SSH_USER: ${{ secrets.DEPLOY_USER }}
+          SSH_PASS: ${{ secrets.DEPLOY_PASS }}
+        run: |
+          set -euo pipefail
+          sleep 5
+          echo -n "HTTPS health: "; curl -s -o /dev/null -w '%{http_code}\n' https://qberp.qbinternet.com/api/v1/health/live
+          echo -n "HTTPS SPA: ";    curl -s -o /dev/null -w '%{http_code}\n' https://qberp.qbinternet.com/
+          echo -n "HTTPS docs: ";   curl -s -o /dev/null -w '%{http_code}\n' https://qberp.qbinternet.com/docs
