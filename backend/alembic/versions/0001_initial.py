@@ -127,7 +127,7 @@ def upgrade() -> None:
         sa.Column("revoked_at", sa.DateTime(timezone=True)),
         sa.Column("replaced_by_id", sa.BigInteger),
         sa.Column("user_agent", sa.Text),
-        sa.Column("ip", postgresql.INET),
+        sa.Column("ip", sa.String(45)),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),
     )
     op.create_index("ix_refresh_tokens_user_id", "refresh_tokens", ["user_id"])
@@ -141,7 +141,7 @@ def upgrade() -> None:
         sa.Column("entity_id", sa.Text),
         sa.Column("previous_value", postgresql.JSONB),
         sa.Column("new_value", postgresql.JSONB),
-        sa.Column("ip", postgresql.INET),
+        sa.Column("ip", sa.String(45)),
         sa.Column("user_agent", sa.Text),
         sa.Column("device_id", sa.Text),
         sa.Column("created_at", sa.DateTime(timezone=True), server_default=sa.text("now()"), nullable=False),

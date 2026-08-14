@@ -14,14 +14,17 @@ from sqlalchemy import (
     UniqueConstraint,
     func,
 )
-from sqlalchemy.dialects.postgresql import INET, JSONB
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base, TimestampMixin
 
-# Dialect-portable types: JSON/INET on SQLite (tests), JSONB/INET on PostgreSQL.
+# Dialect-portable types:
+# JSONType: JSONB on PostgreSQL (native), JSON elsewhere.
+# InetType: String(45) — stores IPv4/IPv6/hostnames as text. Works everywhere,
+#   avoids INET column rejecting non-IP strings like TestClient's 'testclient'.
 JSONType = JSON().with_variant(JSONB(), "postgresql")
-InetType = String().with_variant(INET(), "postgresql")
+InetType = String(45)
 # SQLite only auto-increments INTEGER PRIMARY KEY, so use Integer on sqlite.
 BigIntType = BigInteger().with_variant(Integer(), "sqlite")
 
