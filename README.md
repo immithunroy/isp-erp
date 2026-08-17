@@ -14,7 +14,7 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
 [`docs/architecture.md`](./docs/architecture.md) /
 [`docs/database-design.md`](./docs/database-design.md) for the design.
 
-## Current status: **Phase 5 — Customers + Field Service**
+## Current status: **Phase 6 — Network GIS**
 
 ### Phase 1 — Foundation (complete)
 - Repository scaffold (mono-repo): `backend/`, `frontend/`.
@@ -128,6 +128,42 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
   with live API calls. Customer list → detail navigation, GPS location capture
   with offline queue, work order status transitions with state-machine validation.
 - 9 new backend tests (56 total).
+
+### Phase 6 — Network GIS (complete)
+- **Network Assets** — unified table with `asset_type` discriminator
+  (olt, pop, odf, tj_box, enclosure, splitter, dist_box, pole, manhole, cabinet, dc_site).
+  Full CRUD with unique `asset_code`, lat/lon, accuracy, installed_at, owner, department,
+  parent_asset (hierarchy), capacity, photos, documents, notes. Audit-tracked.
+- **PostGIS geometry** — `geography(Point,4326)` column on `network_assets`,
+  `geography(LineString,4326)` on `fiber_cables`, with GiST spatial indexes.
+  On SQLite (tests), falls back to lat/lon bounding-box filtering.
+- **Map API** — `GET /network/map?bbox=...` returns lightweight `MapItem` list
+  within bounding box (viewport-based, never loads all assets). `GET /network/map/nearby`
+  for radius search. PostgreSQL uses `ST_MakeEnvelope` + `ST_DWithin`; SQLite
+  uses haversine fallback.
+- **Fiber Cables** — full CRUD with configurable `core_count` (2/4/6/12/24/48/72/96/144
+  or custom). **Auto-generates N FiberCore rows** on cable creation (core_number
+  1..N, status="available"). Route geometry as GeoJSON + PostGIS LineString.
+- **Fiber Cores** — individual core management with status (available/reserved/
+  in_use/faulty/dark/spliced/retired), source/destination asset links, customer link.
+- **Splices** — physical fiber splicing (enclosure, source_core → destination_core,
+  splice_loss, technician, timestamp). Foundation for network trace (Phase 7).
+- **Splitter Ports** — individual port representation (input/output, port_index,
+  connected_core, status). Configurable ratios (1:2, 1:4, 1:8, 1:16, 1:32, 1:64).
+- **Customer Network Links** — explicit customer-to-network connections (link_kind:
+  splitter_port or core, target_asset, target_core, target_port_index).
+  **Physical proximity ≠ network connection** — all links are explicit DB rows.
+- **RBAC**: 7 new permission codes (`network:assets:*`, `network:fiber:*`,
+  `network:splices:*`, `network:map:read`).
+- **Frontend**: Full-screen **Leaflet map** with OpenStreetMap tiles, viewport
+  bbox queries (only loads visible assets), layer control per asset type, colored
+  markers, fiber cable polylines, search, "Add Asset" at map center. Asset
+  management page (CRUD with filters). Fiber management page (tabbed: Cables /
+  Cores / Splices).
+- **Mobile**: Network Asset, TJ Box, Enclosure, Splitter, Fiber Survey screens
+  updated from placeholders to functional with GPS capture + offline queue.
+  Network API client added to mobile.
+- 19 new backend tests (75 total).
 
 ## Live deployment
 
@@ -269,7 +305,7 @@ npm run dev
 ## Tests
 
 ```bash
-# backend (56 tests)
+# backend (75 tests)
 cd backend && pytest -q
 # frontend (6 tests)
 cd frontend && npm test -- --run
@@ -290,7 +326,7 @@ GitHub Actions (`.github/workflows/ci.yml`):
 | 3 | ✅ Complete | HRM (employees, designations, shifts, holidays, leave, attendance) |
 | 4 | ✅ Complete | Mobile (React Native + Expo + GPS + facial + offline sync) |
 | 5 | ✅ Complete | Customers + Field Service (customers, locations, visits, work orders) |
-| 6 | Pending | Network GIS (map, OLT, fiber, TJ boxes, enclosures, splitters) |
+| 6 | ✅ Complete | Network GIS (map, assets, fiber cables/cores, splices, splitters, PostGIS) |
 | 7 | Pending | Network Trace |
 | 8 | Pending | Inventory |
 | 9 | Pending | Procurement |

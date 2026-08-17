@@ -30,6 +30,14 @@ from app.models.hrm import (
     Shift,
 )
 from app.models.mobile import GpsRecord, SyncQueue
+from app.models.network import (
+    CustomerNetworkLink,
+    FiberCable,
+    FiberCore,
+    NetworkAsset,
+    Splice,
+    SplitterPort,
+)
 
 __all__ = [
     # core
@@ -63,4 +71,11 @@ __all__ = [
     "CustomerVisit",
     "WorkOrder",
     "WorkOrderEvent",
+    # network gis
+    "NetworkAsset",
+    "FiberCable",
+    "FiberCore",
+    "Splice",
+    "SplitterPort",
+    "CustomerNetworkLink",
 ]

@@ -16,6 +16,9 @@ import { Attendance } from "./pages/Attendance";
 import { Customers } from "./pages/Customers";
 import { CustomerDetail } from "./pages/CustomerDetail";
 import { FieldService } from "./pages/FieldService";
+import { NetworkMap } from "./pages/NetworkMap";
+import { NetworkAssets } from "./pages/NetworkAssets";
+import { FiberManagement } from "./pages/FiberManagement";
 import { AppShell } from "./components/AppShell";
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -179,6 +182,36 @@ export default function App() {
           <Protected>
             <AppShell>
               <FieldService />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/network/map"
+        element={
+          <Protected>
+            <AppShell>
+              <NetworkMap />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/network/assets"
+        element={
+          <Protected>
+            <AppShell>
+              <NetworkAssets />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/network/fiber"
+        element={
+          <Protected>
+            <AppShell>
+              <FiberManagement />
             </AppShell>
           </Protected>
         }

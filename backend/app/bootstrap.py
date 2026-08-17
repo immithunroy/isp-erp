@@ -51,6 +51,14 @@ CORE_PERMISSIONS = [
     ("field_service:read", "field_service", "Read work orders"),
     ("field_service:write", "field_service", "Create/update work orders"),
     ("field_service:approve", "field_service", "Approve work order completion"),
+    # Network GIS
+    ("network:assets:read", "network", "Read network assets"),
+    ("network:assets:write", "network", "Create/update network assets"),
+    ("network:fiber:read", "network", "Read fiber cables/cores"),
+    ("network:fiber:write", "network", "Create/update fiber cables/cores"),
+    ("network:splices:read", "network", "Read splices"),
+    ("network:splices:write", "network", "Create/delete splices"),
+    ("network:map:read", "network", "View network map"),
 ]
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@isp-erp.example.com")

@@ -302,3 +302,117 @@ export interface WorkOrderEvent {
   notes: string | null;
   created_at: string;
 }
+
+// ── Phase 6: Network GIS ───────────────────────────────────────────────
+export interface NetworkAsset {
+  id: number;
+  organization_id: number;
+  asset_code: string;
+  asset_type: string;
+  name: string;
+  status: string;
+  latitude: number | null;
+  longitude: number | null;
+  accuracy_m: number | null;
+  installed_at: string | null;
+  owner: string | null;
+  department_id: number | null;
+  parent_asset_id: number | null;
+  capacity: number | null;
+  notes: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface NetworkAssetCreate {
+  organization_id: number;
+  asset_code: string;
+  asset_type: string;
+  name: string;
+  status?: string;
+  latitude?: number;
+  longitude?: number;
+  accuracy_m?: number;
+  installed_at?: string;
+  owner?: string;
+  department_id?: number;
+  parent_asset_id?: number;
+  capacity?: number;
+  notes?: string;
+}
+
+export interface FiberCable {
+  id: number;
+  organization_id: number;
+  cable_code: string;
+  name: string;
+  cable_type: string | null;
+  core_count: number;
+  start_asset_id: number | null;
+  end_asset_id: number | null;
+  route_geojson: Record<string, unknown> | null;
+  length_m: number | null;
+  installed_at: string | null;
+  status: string;
+  owner: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FiberCableCreate {
+  organization_id: number;
+  cable_code: string;
+  name: string;
+  cable_type?: string;
+  core_count: number;
+  start_asset_id?: number;
+  end_asset_id?: number;
+  installed_at?: string;
+  status?: string;
+  owner?: string;
+  notes?: string;
+}
+
+export interface FiberCore {
+  id: number;
+  cable_id: number;
+  core_number: number;
+  color: string | null;
+  status: string;
+  source_asset_id: number | null;
+  destination_asset_id: number | null;
+  related_customer_id: number | null;
+  notes: string | null;
+}
+
+export interface Splice {
+  id: number;
+  enclosure_asset_id: number | null;
+  source_core_id: number;
+  destination_core_id: number;
+  splice_loss: number | null;
+  technician_id: number | null;
+  spliced_at: string;
+  notes: string | null;
+}
+
+export interface SpliceCreate {
+  enclosure_asset_id?: number;
+  source_core_id: number;
+  destination_core_id: number;
+  splice_loss?: number;
+  technician_id?: number;
+  notes?: string;
+}
+
+export interface MapItem {
+  id: number;
+  asset_code: string;
+  asset_type: string;
+  name: string;
+  status: string;
+  latitude: number;
+  longitude: number;
+}

@@ -61,6 +61,9 @@ def db_engine():
                 # Customers + Field Service
                 "customers", "customer_locations", "customer_visits",
                 "work_orders", "work_order_events",
+                # Network GIS
+                "network_assets", "fiber_cables", "fiber_cores",
+                "splices", "splitter_ports", "customer_network_links",
             }
         ])
     yield engine

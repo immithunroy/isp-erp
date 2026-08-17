@@ -34,11 +34,13 @@ const FIELD_SERVICE_ITEMS: NavItem[] = [
   { label: "Work Orders", to: "/field-service", permission: "field_service:read" },
 ];
 
+const NETWORK_ITEMS: NavItem[] = [
+  { label: "Map", to: "/network/map", permission: "network:map:read" },
+  { label: "Assets", to: "/network/assets", permission: "network:assets:read" },
+  { label: "Fiber", to: "/network/fiber", permission: "network:fiber:read" },
+];
+
 const FUTURE_GROUPS: { label: string; items: string[] }[] = [
-  {
-    label: "Network",
-    items: ["Map", "OLT", "Fiber", "TJ Boxes", "Enclosures", "Splitters", "Trace"],
-  },
   { label: "Inventory", items: ["Products", "Warehouses", "Stock", "Equipment"] },
   { label: "Procurement", items: ["Suppliers", "Purchase Orders", "Receiving"] },
   { label: "Accounting", items: ["Chart of Accounts", "Journal", "Ledger", "Reports"] },
@@ -58,6 +60,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     (item) => !item.permission || hasPermission(item.permission),
   );
   const visibleFieldService = FIELD_SERVICE_ITEMS.filter(
+    (item) => !item.permission || hasPermission(item.permission),
+  );
+  const visibleNetwork = NETWORK_ITEMS.filter(
     (item) => !item.permission || hasPermission(item.permission),
   );
 
@@ -167,6 +172,29 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
               <ul className="mt-1 space-y-1">
                 {visibleFieldService.map((item) => (
+                  <li key={item.to}>
+                    <NavLink
+                      to={item.to}
+                      className={({ isActive }) =>
+                        "block rounded px-2 py-1.5 text-slate-700 hover:bg-slate-100 " +
+                        (isActive ? "bg-slate-100 font-medium text-brand" : "")
+                      }
+                    >
+                      {item.label}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {visibleNetwork.length > 0 && (
+            <div>
+              <div className="px-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Network
+              </div>
+              <ul className="mt-1 space-y-1">
+                {visibleNetwork.map((item) => (
                   <li key={item.to}>
                     <NavLink
                       to={item.to}

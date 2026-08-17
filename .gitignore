@@ -38,3 +38,6 @@ Thumbs.db
 *.swp
 # typescript build info
 *.tsbuildinfo
+
+# vite temp
+node_modules/.vite/

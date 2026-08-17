@@ -210,7 +210,23 @@ status badges, events). Mobile: Customer List, Customer Detail, Customer
 Location Capture, Jobs, Job Completion, Photo Capture screens updated from
 placeholders to functional with live API calls + offline queue.
 
-Subsequent phases (Network GIS, Trace,
+### Phase 6 — Network GIS (complete)
+Network Assets (unified table, asset_type discriminator: olt/pop/odf/
+tj_box/enclosure/splitter/dist_box/pole/manhole/cabinet/dc_site). PostGIS
+geometry(Point,4326) with GiST spatial indexes. Map API with bbox
+queries (viewport-based, never loads all) + nearby radius search.
+Fiber Cables with configurable core_count, auto-generates N FiberCore rows
+on creation. Fiber Cores with status management. Splices (explicit
+source_core→destination_core connectivity). Splitter Ports (individual
+port representation). Customer Network Links (explicit customer-to-network
+connections — physical proximity ≠ network connection). 7 new permission
+codes. 19 new tests (75 total). Frontend: full-screen Leaflet map with
+OpenStreetMap, viewport bbox queries, layer control, colored markers, fiber
+polylines, search, add-asset-at-center. Asset management + Fiber management
+(tabbed: Cables/Cores/Splices). Mobile: Network Asset, TJ Box, Enclosure,
+Splitter, Fiber Survey screens functional with GPS + offline queue.
+
+Subsequent phases (Trace,
 Inventory, Procurement, Accounting, Billing, Reports) will be built
 incrementally with verification between phases.
 

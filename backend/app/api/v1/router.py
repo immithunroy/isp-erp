@@ -7,6 +7,7 @@ from app.api.v1 import (
     health,
     hrm,
     mobile,
+    network,
     organizations,
     roles,
     settings,
@@ -41,3 +42,11 @@ api_router.include_router(customers.customer_locations_router)
 api_router.include_router(customers.customer_visits_router)
 api_router.include_router(customers.work_orders_router)
 api_router.include_router(customers.work_order_events_router)
+# Network GIS
+api_router.include_router(network.assets_router)
+api_router.include_router(network.fiber_router)
+api_router.include_router(network.fiber_cores_router)
+api_router.include_router(network.splices_router)
+api_router.include_router(network.splitter_ports_router)
+api_router.include_router(network.customer_links_router)
+api_router.include_router(network.map_router)
