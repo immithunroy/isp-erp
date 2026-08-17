@@ -14,7 +14,7 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
 [`docs/architecture.md`](./docs/architecture.md) /
 [`docs/database-design.md`](./docs/database-design.md) for the design.
 
-## Current status: **Phase 2 — Core ERP**
+## Current status: **Phase 3 — HRM**
 
 ### Phase 1 — Foundation (complete)
 - Repository scaffold (mono-repo): `backend/`, `frontend/`.
@@ -56,6 +56,29 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
   Settings. All using TanStack Query + React Hook Form + Zod validation.
   Navigation sidebar with permission-gated links. Shared components: Modal,
   Table, Pagination, Spinner.
+
+### Phase 3 — HRM (complete)
+- **Employees** — full CRUD with employee_code (unique), department, designation,
+  supervisor (self-ref), branch, linked user, employment status, emergency
+  contact, joining date, notes. Audit-tracked.
+- **Designations** — full CRUD with department link, grade, org-scoped unique code.
+- **Shifts** — full CRUD with start/end time, grace minutes, org-scoped.
+- **Employee Shift Assignment** — assign shifts to employees with effective date range.
+- **Holidays** — full CRUD with date, scope (org/branch), recurring flag, year filter.
+- **Leave Types** — full CRUD with default days, paid/unpaid, org-scoped.
+- **Leave Balances** — create/update balances per employee per leave type per year.
+- **Leave Requests** — create with date range, approve/reject workflow
+  (auto-updates leave balance used_days on approval), cannot re-approve,
+  from_date ≤ to_date validation.
+- **Attendance** — create with GPS (lat/lon/accuracy), face verification fields,
+  device tracking, valid attendance types (check_in/check_out/break_resume/
+  break_end/field). Attendance correction with audit trail (previous/new values,
+  reason, approver).
+- **RBAC**: 16 new permission codes (`hrm:employees:*`, `hrm:designations:*`,
+  `hrm:shifts:*`, `hrm:holidays:*`, `hrm:leave:*`, `hrm:attendance:*`).
+- **Frontend**: Full pages for Employees, Designations, Shifts, Holidays,
+  Leave (tabbed: Leave Types + Leave Requests + Leave Balances), Attendance.
+  All using TanStack Query + React Hook Form. HRM section in navigation sidebar.
 
 ## Live deployment
 
@@ -208,7 +231,7 @@ npm run dev
 ## Tests
 
 ```bash
-# backend (25 tests)
+# backend (35 tests)
 cd backend && pytest -q
 # frontend (6 tests)
 cd frontend && npm test -- --run
@@ -226,7 +249,7 @@ GitHub Actions (`.github/workflows/ci.yml`):
 |-------|--------|-------------|
 | 1 | ✅ Complete | Foundation (auth, Docker, DB, CI) |
 | 2 | ✅ Complete | Core ERP (org, branches, departments, roles, permissions, users, audit, settings) |
-| 3 | Pending | HRM (employees, attendance, leave, shifts, payroll structure) |
+| 3 | ✅ Complete | HRM (employees, designations, shifts, holidays, leave, attendance) |
 | 4 | Pending | Mobile (React Native + GPS + facial + offline sync) |
 | 5 | Pending | Customers + Field Service |
 | 6 | Pending | Network GIS (map, OLT, fiber, TJ boxes, enclosures, splitters) |

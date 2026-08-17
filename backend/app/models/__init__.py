@@ -10,8 +10,21 @@ from app.models.core import (
     SystemSetting,
     User,
 )
+from app.models.hrm import (
+    Attendance,
+    AttendanceCorrection,
+    Designation,
+    Employee,
+    EmployeeShift,
+    Holiday,
+    LeaveBalance,
+    LeaveRequest,
+    LeaveType,
+    Shift,
+)
 
 __all__ = [
+    # core
     "AuditLog",
     "Branch",
     "Department",
@@ -22,4 +35,15 @@ __all__ = [
     "RolePermission",
     "SystemSetting",
     "User",
+    # hrm
+    "Attendance",
+    "AttendanceCorrection",
+    "Designation",
+    "Employee",
+    "EmployeeShift",
+    "Holiday",
+    "LeaveBalance",
+    "LeaveRequest",
+    "LeaveType",
+    "Shift",
 ]

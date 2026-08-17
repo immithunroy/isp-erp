@@ -17,8 +17,16 @@ const CORE_ITEMS: NavItem[] = [
   { label: "Settings", to: "/settings", permission: "core:settings:read" },
 ];
 
+const HRM_ITEMS: NavItem[] = [
+  { label: "Employees", to: "/employees", permission: "hrm:employees:read" },
+  { label: "Designations", to: "/designations", permission: "hrm:designations:read" },
+  { label: "Shifts", to: "/shifts", permission: "hrm:shifts:read" },
+  { label: "Holidays", to: "/holidays", permission: "hrm:holidays:read" },
+  { label: "Leave", to: "/leave", permission: "hrm:leave:read" },
+  { label: "Attendance", to: "/attendance", permission: "hrm:attendance:read" },
+];
+
 const FUTURE_GROUPS: { label: string; items: string[] }[] = [
-  { label: "HRM", items: ["Employees", "Departments", "Attendance", "Leave", "Shifts"] },
   { label: "Customers", items: ["Customers", "Locations", "Network Relationships"] },
   { label: "Field Service", items: ["Jobs", "Assignments", "Visits"] },
   {
@@ -35,6 +43,9 @@ export function AppShell({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
   const visibleCore = CORE_ITEMS.filter(
+    (item) => !item.permission || hasPermission(item.permission),
+  );
+  const visibleHrm = HRM_ITEMS.filter(
     (item) => !item.permission || hasPermission(item.permission),
   );
 
@@ -75,6 +86,29 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
               <ul className="mt-1 space-y-1">
                 {visibleCore.map((item) => (
+                  <li key={item.to}>
+                    <NavLink
+                      to={item.to}
+                      className={({ isActive }) =>
+                        "block rounded px-2 py-1.5 text-slate-700 hover:bg-slate-100 " +
+                        (isActive ? "bg-slate-100 font-medium text-brand" : "")
+                      }
+                    >
+                      {item.label}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {visibleHrm.length > 0 && (
+            <div>
+              <div className="px-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                HRM
+              </div>
+              <ul className="mt-1 space-y-1">
+                {visibleHrm.map((item) => (
                   <li key={item.to}>
                     <NavLink
                       to={item.to}

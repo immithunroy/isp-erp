@@ -25,6 +25,21 @@ CORE_PERMISSIONS = [
     ("core:settings:read", "core", "Read system settings"),
     ("core:settings:write", "core", "Manage system settings"),
     ("core:audit:read", "core", "Read audit logs"),
+    # HRM
+    ("hrm:employees:read", "hrm", "Read employees"),
+    ("hrm:employees:write", "hrm", "Create/update employees"),
+    ("hrm:designations:read", "hrm", "Read designations"),
+    ("hrm:designations:write", "hrm", "Create/update designations"),
+    ("hrm:shifts:read", "hrm", "Read shifts"),
+    ("hrm:shifts:write", "hrm", "Create/update shifts"),
+    ("hrm:holidays:read", "hrm", "Read holidays"),
+    ("hrm:holidays:write", "hrm", "Create/update holidays"),
+    ("hrm:leave:read", "hrm", "Read leave types/balances/requests"),
+    ("hrm:leave:write", "hrm", "Create/update leave"),
+    ("hrm:leave:approve", "hrm", "Approve/reject leave requests"),
+    ("hrm:attendance:read", "hrm", "Read attendance"),
+    ("hrm:attendance:write", "hrm", "Create attendance"),
+    ("hrm:attendance:correct", "hrm", "Correct attendance records"),
 ]
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@isp-erp.example.com")

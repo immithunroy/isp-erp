@@ -52,6 +52,10 @@ def db_engine():
                 "organizations", "branches", "departments", "roles", "permissions",
                 "role_permissions", "user_roles", "user_permissions", "users",
                 "refresh_tokens", "audit_logs", "system_settings",
+                # HRM
+                "designations", "employees", "shifts", "employee_shifts",
+                "holidays", "leave_types", "leave_balances", "leave_requests",
+                "attendance", "attendance_corrections",
             }
         ])
     yield engine
