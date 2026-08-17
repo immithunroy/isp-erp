@@ -22,6 +22,7 @@ from app.models.hrm import (
     LeaveType,
     Shift,
 )
+from app.models.mobile import GpsRecord, SyncQueue
 
 __all__ = [
     # core
@@ -46,4 +47,7 @@ __all__ = [
     "LeaveRequest",
     "LeaveType",
     "Shift",
+    # mobile
+    "GpsRecord",
+    "SyncQueue",
 ]

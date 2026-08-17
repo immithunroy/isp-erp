@@ -14,7 +14,7 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
 [`docs/architecture.md`](./docs/architecture.md) /
 [`docs/database-design.md`](./docs/database-design.md) for the design.
 
-## Current status: **Phase 3 — HRM**
+## Current status: **Phase 4 — Mobile**
 
 ### Phase 1 — Foundation (complete)
 - Repository scaffold (mono-repo): `backend/`, `frontend/`.
@@ -80,6 +80,27 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
   Leave (tabbed: Leave Types + Leave Requests + Leave Balances), Attendance.
   All using TanStack Query + React Hook Form. HRM section in navigation sidebar.
 
+### Phase 4 — Mobile (complete)
+- **React Native + Expo app** (`mobile/` directory) with TypeScript (strict)
+- **18 screens**: Login, Dashboard, Attendance, GPS, Jobs, Customer List/Detail/Location,
+  Network Asset, TJ Box, Enclosure, Splitter, Fiber Survey, Photo Capture, Equipment
+  Scan, Job Completion, Notifications, Profile (13 as placeholders for later phases)
+- **Employee login** with JWT stored in `expo-secure-store`
+- **GPS capture** via `expo-location` with accuracy display + configurable threshold
+  warning (from `/mobile/settings`)
+- **Facial attendance architecture**: Camera-based face capture with placeholder
+  verification (returns `face_verified: true, face_score: 0.0`; actual face recognition
+  to be integrated later). Full 4-step attendance flow: type → GPS → face → submit
+- **Offline-first architecture**: SQLite local queue (`expo-sqlite`) with idempotency
+  keys (UUID), automatic sync when online (`expo-network`), retry with backoff,
+  sync status indicator, batch sync via `POST /mobile/sync`
+- **Backend mobile endpoints**: `/mobile/profile`, `/mobile/settings`,
+  `/mobile/attendance`, `/mobile/gps`, `/mobile/sync` (batch with idempotency)
+- **Backend models**: `GpsRecord`, `SyncQueue` + migration `0003_mobile`
+- **4 new permission codes** (`mobile:*`), **12 new backend tests** (47 total)
+- GPS accuracy validation with configurable threshold (accept with warning if exceeded)
+- Sync idempotency: duplicate requests with same key return same record_id (no duplicates)
+
 ## Live deployment
 
 | | |
@@ -95,30 +116,19 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
 isp-erp/
   docs/                     # architecture + database design
   backend/                  # FastAPI + SQLAlchemy + Alembic
-    app/
-      api/v1/               # routers: auth, users, organizations, roles,
-                            #   audit, settings, health
-      core/                 # security, rbac, audit, logging
-      db/                   # base, session
-      models/               # core models (org, branch, dept, role, perm,
-                            #   user, refresh_token, audit_log, settings)
-      schemas/              # Pydantic schemas (auth, org, users, audit)
-      services/             # business logic (auth, org, dept, role, user,
-                            #   audit services)
-    alembic/                # migrations
-    tests/                  # pytest (25 tests)
-    pyproject.toml
-    Dockerfile
-  frontend/                 # React + TS + Vite + Tailwind
+  frontend/                 # React + TS + Vite + Tailwind (web)
+  mobile/                   # React Native + Expo (field workforce app)
     src/
-      components/            # Button, Input, Card, Badge, Modal, Table,
-                            #   Spinner, AppShell, ui helpers
-      lib/                   # api, auth, auth-api, core-api, utils
-      pages/                # Login, Dashboard, Users, Roles, Organizations,
-                            #   AuditLogs, Settings
-    tests/                  # vitest (6 tests)
+      api/                 # client, auth, mobile API functions
+      store/               # auth + sync context providers
+      db/                  # SQLite offline queue
+      components/          # Button, Input, Card, GPSCapture, FaceCapture, etc.
+      screens/             # 18 screens (Login, Dashboard, Attendance, GPS, etc.)
+      navigation/          # stack + tab navigators
+      types/               # shared TypeScript types
+      utils/               # idempotency + datetime helpers
+    App.tsx
     package.json
-    Dockerfile
   docker-compose.yml
   .env.example
   README.md
@@ -231,7 +241,7 @@ npm run dev
 ## Tests
 
 ```bash
-# backend (35 tests)
+# backend (47 tests)
 cd backend && pytest -q
 # frontend (6 tests)
 cd frontend && npm test -- --run
@@ -250,7 +260,7 @@ GitHub Actions (`.github/workflows/ci.yml`):
 | 1 | ✅ Complete | Foundation (auth, Docker, DB, CI) |
 | 2 | ✅ Complete | Core ERP (org, branches, departments, roles, permissions, users, audit, settings) |
 | 3 | ✅ Complete | HRM (employees, designations, shifts, holidays, leave, attendance) |
-| 4 | Pending | Mobile (React Native + GPS + facial + offline sync) |
+| 4 | ✅ Complete | Mobile (React Native + Expo + GPS + facial + offline sync) |
 | 5 | Pending | Customers + Field Service |
 | 6 | Pending | Network GIS (map, OLT, fiber, TJ boxes, enclosures, splitters) |
 | 7 | Pending | Network Trace |

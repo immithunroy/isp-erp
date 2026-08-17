@@ -23,6 +23,13 @@ htmlcov/
 /dist/
 *.local
 
+# mobile
+/mobile/node_modules/
+/mobile/.expo/
+/mobile/dist/
+/mobile/web-build/
+/mobile/*.tsbuildinfo
+
 # os / editor
 .DS_Store
 Thumbs.db

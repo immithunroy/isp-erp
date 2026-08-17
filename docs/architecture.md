@@ -179,7 +179,24 @@ JSON values). All CRUD operations are audit-logged with previous/new values.
 RBAC enforced on every endpoint. Frontend pages for all entities with
 TanStack Query + React Hook Form + Zod.
 
-Subsequent phases (HRM, Mobile, Customers+Field Service, Network GIS, Trace,
+### Phase 3 — HRM (complete)
+Employees, Designations, Shifts, Employee Shifts, Holidays, Leave Types,
+Leave Balances, Leave Requests (with approve/reject workflow + auto balance
+update), Attendance (GPS + face verification fields + corrections with audit
+trail). 16 new permission codes. Frontend pages for all HRM entities.
+
+### Phase 4 — Mobile (complete)
+React Native + Expo app with 18 screens (5 functional, 13 placeholders for
+later phases). Employee login with JWT in SecureStore. GPS capture via
+expo-location with configurable accuracy threshold. Facial attendance
+architecture with placeholder verification. Offline-first: SQLite local
+queue with idempotency keys, automatic sync when online, retry with backoff,
+sync status indicator. Backend mobile endpoints: /mobile/profile, /mobile/
+settings, /mobile/attendance, /mobile/gps, /mobile/sync (batch with
+idempotency). Models: GpsRecord, SyncQueue + migration 0003_mobile.
+4 new permission codes, 12 new tests (47 total).
+
+Subsequent phases (Customers+Field Service, Network GIS, Trace,
 Inventory, Procurement, Accounting, Billing, Reports) will be built
 incrementally with verification between phases.
 

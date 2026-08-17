@@ -40,6 +40,11 @@ CORE_PERMISSIONS = [
     ("hrm:attendance:read", "hrm", "Read attendance"),
     ("hrm:attendance:write", "hrm", "Create attendance"),
     ("hrm:attendance:correct", "hrm", "Correct attendance records"),
+    # Mobile
+    ("mobile:attendance:submit", "mobile", "Submit attendance from mobile"),
+    ("mobile:gps:submit", "mobile", "Submit GPS records from mobile"),
+    ("mobile:sync", "mobile", "Batch sync from mobile app"),
+    ("mobile:profile:read", "mobile", "Read own mobile profile"),
 ]
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@isp-erp.example.com")

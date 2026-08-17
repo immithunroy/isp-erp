@@ -56,6 +56,8 @@ def db_engine():
                 "designations", "employees", "shifts", "employee_shifts",
                 "holidays", "leave_types", "leave_balances", "leave_requests",
                 "attendance", "attendance_corrections",
+                # Mobile
+                "gps_records", "sync_queue",
             }
         ])
     yield engine
@@ -96,6 +98,23 @@ def seeded_client(client, db_session):
     from app.bootstrap import seed_initial_data
 
     seed_initial_data(db_session, admin_password="Password123!")
+    # Link employee to admin user for mobile endpoint tests
+    from sqlalchemy import select
+
+    from app.models.hrm import Employee
+
+    emp = db_session.scalar(select(Employee).where(Employee.user_id == 1))
+    if not emp:
+        emp = Employee(
+            organization_id=1,
+            user_id=1,
+            employee_code="ADMIN-EMP",
+            full_name="System Administrator",
+            email="admin@isp-erp.example.com",
+            is_active=True,
+        )
+        db_session.add(emp)
+        db_session.commit()
     return client
 
 

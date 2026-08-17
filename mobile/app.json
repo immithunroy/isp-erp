@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "ISP Operations ERP",
+    "slug": "isp-erp-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0ea5e9"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.qbinternet.isperp",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app needs location access for attendance and field work GPS capture.",
+        "NSCameraUsageDescription": "This app needs camera access for facial attendance verification and photo capture.",
+        "NSFaceIDUsageDescription": "This app uses Face ID for attendance verification."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0ea5e9"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "CAMERA"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": ""
+      }
+    },
+    "plugins": [
+      "expo-camera",
+      "expo-location",
+      "expo-secure-store"
+    ]
+  }
+}
