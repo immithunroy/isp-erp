@@ -1,6 +1,17 @@
 from fastapi import APIRouter
 
-from app.api.v1 import audit, auth, health, hrm, mobile, organizations, roles, settings, users
+from app.api.v1 import (
+    audit,
+    auth,
+    customers,
+    health,
+    hrm,
+    mobile,
+    organizations,
+    roles,
+    settings,
+    users,
+)
 
 api_router = APIRouter()
 api_router.include_router(health.router)
@@ -24,3 +35,9 @@ api_router.include_router(hrm.leave_requests_router)
 api_router.include_router(hrm.attendance_router)
 # Mobile
 api_router.include_router(mobile.router)
+# Customers + Field Service
+api_router.include_router(customers.customers_router)
+api_router.include_router(customers.customer_locations_router)
+api_router.include_router(customers.customer_visits_router)
+api_router.include_router(customers.work_orders_router)
+api_router.include_router(customers.work_order_events_router)

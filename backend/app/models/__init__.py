@@ -10,6 +10,13 @@ from app.models.core import (
     SystemSetting,
     User,
 )
+from app.models.customers import (
+    Customer,
+    CustomerLocation,
+    CustomerVisit,
+    WorkOrder,
+    WorkOrderEvent,
+)
 from app.models.hrm import (
     Attendance,
     AttendanceCorrection,
@@ -50,4 +57,10 @@ __all__ = [
     # mobile
     "GpsRecord",
     "SyncQueue",
+    # customers + field service
+    "Customer",
+    "CustomerLocation",
+    "CustomerVisit",
+    "WorkOrder",
+    "WorkOrderEvent",
 ]

@@ -26,9 +26,15 @@ const HRM_ITEMS: NavItem[] = [
   { label: "Attendance", to: "/attendance", permission: "hrm:attendance:read" },
 ];
 
+const CUSTOMER_ITEMS: NavItem[] = [
+  { label: "Customers", to: "/customers", permission: "customers:read" },
+];
+
+const FIELD_SERVICE_ITEMS: NavItem[] = [
+  { label: "Work Orders", to: "/field-service", permission: "field_service:read" },
+];
+
 const FUTURE_GROUPS: { label: string; items: string[] }[] = [
-  { label: "Customers", items: ["Customers", "Locations", "Network Relationships"] },
-  { label: "Field Service", items: ["Jobs", "Assignments", "Visits"] },
   {
     label: "Network",
     items: ["Map", "OLT", "Fiber", "TJ Boxes", "Enclosures", "Splitters", "Trace"],
@@ -46,6 +52,12 @@ export function AppShell({ children }: { children: ReactNode }) {
     (item) => !item.permission || hasPermission(item.permission),
   );
   const visibleHrm = HRM_ITEMS.filter(
+    (item) => !item.permission || hasPermission(item.permission),
+  );
+  const visibleCustomers = CUSTOMER_ITEMS.filter(
+    (item) => !item.permission || hasPermission(item.permission),
+  );
+  const visibleFieldService = FIELD_SERVICE_ITEMS.filter(
     (item) => !item.permission || hasPermission(item.permission),
   );
 
@@ -109,6 +121,52 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
               <ul className="mt-1 space-y-1">
                 {visibleHrm.map((item) => (
+                  <li key={item.to}>
+                    <NavLink
+                      to={item.to}
+                      className={({ isActive }) =>
+                        "block rounded px-2 py-1.5 text-slate-700 hover:bg-slate-100 " +
+                        (isActive ? "bg-slate-100 font-medium text-brand" : "")
+                      }
+                    >
+                      {item.label}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {visibleCustomers.length > 0 && (
+            <div>
+              <div className="px-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Customers
+              </div>
+              <ul className="mt-1 space-y-1">
+                {visibleCustomers.map((item) => (
+                  <li key={item.to}>
+                    <NavLink
+                      to={item.to}
+                      className={({ isActive }) =>
+                        "block rounded px-2 py-1.5 text-slate-700 hover:bg-slate-100 " +
+                        (isActive ? "bg-slate-100 font-medium text-brand" : "")
+                      }
+                    >
+                      {item.label}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {visibleFieldService.length > 0 && (
+            <div>
+              <div className="px-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Field Service
+              </div>
+              <ul className="mt-1 space-y-1">
+                {visibleFieldService.map((item) => (
                   <li key={item.to}>
                     <NavLink
                       to={item.to}

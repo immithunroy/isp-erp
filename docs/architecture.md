@@ -196,7 +196,21 @@ settings, /mobile/attendance, /mobile/gps, /mobile/sync (batch with
 idempotency). Models: GpsRecord, SyncQueue + migration 0003_mobile.
 4 new permission codes, 12 new tests (47 total).
 
-Subsequent phases (Customers+Field Service, Network GIS, Trace,
+### Phase 5 — Customers + Field Service (complete)
+Customers (CRUD, unique customer_code, operational records only — no PPPoE/
+RADIUS/bandwidth). Customer Location History (append-only, is_current flag,
+never overwrite). Customer Visits (field visit records with GPS + photos).
+Work Orders with state machine (open→assigned→accepted→in_progress→
+completed→approved or →cancelled), invalid transitions rejected. Work
+Order Events auto-created on transitions. 5 new permission codes
+(customers:read/write, field_service:read/write/approve). 9 new tests
+(56 total). Frontend pages: Customers list+detail (with location history +
+visits tabs), Field Service (work orders with create/edit/transition,
+status badges, events). Mobile: Customer List, Customer Detail, Customer
+Location Capture, Jobs, Job Completion, Photo Capture screens updated from
+placeholders to functional with live API calls + offline queue.
+
+Subsequent phases (Network GIS, Trace,
 Inventory, Procurement, Accounting, Billing, Reports) will be built
 incrementally with verification between phases.
 

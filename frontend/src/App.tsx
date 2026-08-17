@@ -13,6 +13,9 @@ import { Shifts } from "./pages/Shifts";
 import { Holidays } from "./pages/Holidays";
 import { Leave } from "./pages/Leave";
 import { Attendance } from "./pages/Attendance";
+import { Customers } from "./pages/Customers";
+import { CustomerDetail } from "./pages/CustomerDetail";
+import { FieldService } from "./pages/FieldService";
 import { AppShell } from "./components/AppShell";
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -146,6 +149,36 @@ export default function App() {
           <Protected>
             <AppShell>
               <Attendance />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/customers"
+        element={
+          <Protected>
+            <AppShell>
+              <Customers />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/customers/:id"
+        element={
+          <Protected>
+            <AppShell>
+              <CustomerDetail />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/field-service"
+        element={
+          <Protected>
+            <AppShell>
+              <FieldService />
             </AppShell>
           </Protected>
         }

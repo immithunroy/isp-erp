@@ -58,6 +58,9 @@ def db_engine():
                 "attendance", "attendance_corrections",
                 # Mobile
                 "gps_records", "sync_queue",
+                # Customers + Field Service
+                "customers", "customer_locations", "customer_visits",
+                "work_orders", "work_order_events",
             }
         ])
     yield engine

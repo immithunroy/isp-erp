@@ -14,7 +14,7 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
 [`docs/architecture.md`](./docs/architecture.md) /
 [`docs/database-design.md`](./docs/database-design.md) for the design.
 
-## Current status: **Phase 4 — Mobile**
+## Current status: **Phase 5 — Customers + Field Service**
 
 ### Phase 1 — Foundation (complete)
 - Repository scaffold (mono-repo): `backend/`, `frontend/`.
@@ -100,6 +100,34 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
 - **4 new permission codes** (`mobile:*`), **12 new backend tests** (47 total)
 - GPS accuracy validation with configurable threshold (accept with warning if exceeded)
 - Sync idempotency: duplicate requests with same key return same record_id (no duplicates)
+
+### Phase 5 — Customers + Field Service (complete)
+- **Customers** — full CRUD (customer_code unique, name, phone, email, address,
+  installation_date, status, assigned_technician_id, branch_id, notes). Audit-tracked.
+  NO PPPoE/RADIUS/bandwidth fields (operational records only, per spec).
+- **Customer Location History** — append-only location records (latitude, longitude,
+  accuracy, address, source, collected_by, collection_method). When a new location
+  is added, previous locations are set `is_current=False` and the new one is
+  `is_current=True` — history is never overwritten.
+- **Customer Visits** — record field visits (employee, purpose, visited_at, GPS,
+  photos, notes).
+- **Work Orders** — full CRUD with state machine:
+  `open → assigned → accepted → in_progress → completed → approved`
+  (or `→ cancelled` at any stage). Invalid transitions rejected with 400.
+  Auto-creates `WorkOrderEvent` on each transition. Completion report field.
+  Approval gated by separate `field_service:approve` permission.
+- **Work Order Events** — auto-generated audit trail per work order (event_type,
+  actor, GPS, notes, timestamp).
+- **RBAC**: 5 new permission codes (`customers:read/write`,
+  `field_service:read/write/approve`).
+- **Frontend**: Full pages for Customers (list + detail with location history +
+  visits tabs), Field Service (work orders with create/edit/transition/delete,
+  colored status badges, events view). Navigation sidebar updated.
+- **Mobile**: Customer List, Customer Detail, Customer Location Capture, Jobs,
+  Job Completion, Photo Capture screens updated from placeholders to functional
+  with live API calls. Customer list → detail navigation, GPS location capture
+  with offline queue, work order status transitions with state-machine validation.
+- 9 new backend tests (56 total).
 
 ## Live deployment
 
@@ -241,7 +269,7 @@ npm run dev
 ## Tests
 
 ```bash
-# backend (47 tests)
+# backend (56 tests)
 cd backend && pytest -q
 # frontend (6 tests)
 cd frontend && npm test -- --run
@@ -261,7 +289,7 @@ GitHub Actions (`.github/workflows/ci.yml`):
 | 2 | ✅ Complete | Core ERP (org, branches, departments, roles, permissions, users, audit, settings) |
 | 3 | ✅ Complete | HRM (employees, designations, shifts, holidays, leave, attendance) |
 | 4 | ✅ Complete | Mobile (React Native + Expo + GPS + facial + offline sync) |
-| 5 | Pending | Customers + Field Service |
+| 5 | ✅ Complete | Customers + Field Service (customers, locations, visits, work orders) |
 | 6 | Pending | Network GIS (map, OLT, fiber, TJ boxes, enclosures, splitters) |
 | 7 | Pending | Network Trace |
 | 8 | Pending | Inventory |

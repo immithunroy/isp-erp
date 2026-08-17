@@ -45,6 +45,12 @@ CORE_PERMISSIONS = [
     ("mobile:gps:submit", "mobile", "Submit GPS records from mobile"),
     ("mobile:sync", "mobile", "Batch sync from mobile app"),
     ("mobile:profile:read", "mobile", "Read own mobile profile"),
+    # Customers + Field Service
+    ("customers:read", "customers", "Read customers"),
+    ("customers:write", "customers", "Create/update customers"),
+    ("field_service:read", "field_service", "Read work orders"),
+    ("field_service:write", "field_service", "Create/update work orders"),
+    ("field_service:approve", "field_service", "Approve work order completion"),
 ]
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@isp-erp.example.com")

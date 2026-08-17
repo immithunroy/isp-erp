@@ -118,7 +118,11 @@ def test_cannot_delete_system_role(seeded_client, auth_headers):
 def test_create_and_list_permissions(seeded_client, auth_headers):
     resp = seeded_client.post(
         "/api/v1/permissions",
-        json={"code": "customers:read", "module": "customers", "description": "Read customers"},
+        json={
+            "code": "test:custom:perm",
+            "module": "test",
+            "description": "Custom test permission",
+        },
         headers=auth_headers,
     )
     assert resp.status_code == 201
