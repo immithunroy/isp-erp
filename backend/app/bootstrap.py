@@ -59,6 +59,8 @@ CORE_PERMISSIONS = [
     ("network:splices:read", "network", "Read splices"),
     ("network:splices:write", "network", "Create/delete splices"),
     ("network:map:read", "network", "View network map"),
+    # Network Trace
+    ("network:trace:read", "network", "Run network trace"),
 ]
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@isp-erp.example.com")

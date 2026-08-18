@@ -11,6 +11,7 @@ from app.api.v1 import (
     organizations,
     roles,
     settings,
+    trace,
     users,
 )
 
@@ -50,3 +51,5 @@ api_router.include_router(network.splices_router)
 api_router.include_router(network.splitter_ports_router)
 api_router.include_router(network.customer_links_router)
 api_router.include_router(network.map_router)
+# Network Trace
+api_router.include_router(trace.router)

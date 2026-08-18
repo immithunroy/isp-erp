@@ -19,6 +19,7 @@ import { FieldService } from "./pages/FieldService";
 import { NetworkMap } from "./pages/NetworkMap";
 import { NetworkAssets } from "./pages/NetworkAssets";
 import { FiberManagement } from "./pages/FiberManagement";
+import { NetworkTrace } from "./pages/NetworkTrace";
 import { AppShell } from "./components/AppShell";
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -212,6 +213,16 @@ export default function App() {
           <Protected>
             <AppShell>
               <FiberManagement />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/network/trace"
+        element={
+          <Protected>
+            <AppShell>
+              <NetworkTrace />
             </AppShell>
           </Protected>
         }

@@ -226,9 +226,17 @@ polylines, search, add-asset-at-center. Asset management + Fiber management
 (tabbed: Cables/Cores/Splices). Mobile: Network Asset, TJ Box, Enclosure,
 Splitter, Fiber Survey screens functional with GPS + offline queue.
 
-Subsequent phases (Trace,
-Inventory, Procurement, Accounting, Billing, Reports) will be built
-incrementally with verification between phases.
+### Phase 7 — Network Trace (complete)
+Customer → OLT trace: walks explicit DB relationships (Customer →
+CustomerNetworkLink → SplitterPort → FiberCore → Splice → ... → OLT).
+Never geographic proximity. OLT → Customer reverse trace (multiple paths).
+Core trace (single core's cable + up/down splices). 1 new permission
+code. 6 new tests (81 total). Frontend: Network Trace visualization page
+with trace type selector, vertical node list with arrows, color-coded by kind.
+Mobile: no trace screen needed (trace is a desktop engineering tool).
+
+Subsequent phases (Inventory, Procurement, Accounting, Billing,
+Reports) will be built incrementally with verification between phases.
 
 ## 10. Unknowns / out of scope for now
 

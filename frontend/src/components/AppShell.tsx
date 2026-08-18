@@ -38,6 +38,7 @@ const NETWORK_ITEMS: NavItem[] = [
   { label: "Map", to: "/network/map", permission: "network:map:read" },
   { label: "Assets", to: "/network/assets", permission: "network:assets:read" },
   { label: "Fiber", to: "/network/fiber", permission: "network:fiber:read" },
+  { label: "Trace", to: "/network/trace" },
 ];
 
 const FUTURE_GROUPS: { label: string; items: string[] }[] = [
@@ -62,9 +63,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const visibleFieldService = FIELD_SERVICE_ITEMS.filter(
     (item) => !item.permission || hasPermission(item.permission),
   );
-  const visibleNetwork = NETWORK_ITEMS.filter(
-    (item) => !item.permission || hasPermission(item.permission),
-  );
+  const hasAnyNetwork =
+    hasPermission("network:map:read") ||
+    hasPermission("network:assets:read") ||
+    hasPermission("network:fiber:read");
+  const visibleNetwork = NETWORK_ITEMS.filter((item) => {
+    if (item.permission) return hasPermission(item.permission);
+    return hasAnyNetwork;
+  });
 
   const handleLogout = async () => {
     await logout();

@@ -14,7 +14,7 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
 [`docs/architecture.md`](./docs/architecture.md) /
 [`docs/database-design.md`](./docs/database-design.md) for the design.
 
-## Current status: **Phase 6 — Network GIS**
+## Current status: **Phase 7 — Network Trace**
 
 ### Phase 1 — Foundation (complete)
 - Repository scaffold (mono-repo): `backend/`, `frontend/`.
@@ -165,6 +165,24 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
   Network API client added to mobile.
 - 19 new backend tests (75 total).
 
+### Phase 7 — Network Trace (complete)
+- **Customer → OLT trace** — walks explicit DB relationships: Customer →
+  CustomerNetworkLink → SplitterPort → FiberCore → Splice → FiberCore → ... → OLT.
+  Never uses geographic proximity. Returns ordered node list with
+  kind/id/label/detail per hop. Handles splitter port → sibling core traversal.
+- **OLT → Customer trace** (reverse) — walks from OLT through fiber cables/cores/
+  splices to all connected customers. Returns multiple trace paths.
+- **Core trace** — shows a single fiber core's cable, upstream and
+  downstream splices, and connected endpoints.
+- **Trace API**: `GET /network/trace/customer/{id}`,
+  `GET /network/trace/olt/{id}`, `GET /network/trace/core/{id}`
+- **1 new permission code** (`network:trace:read`)
+- **Frontend**: Network Trace visualization page with trace type selector
+  (Customer→OLT / OLT→Customers / Core), ID input, vertical node list
+  with arrows, color-coded by kind (customer=blue, OLT=green, fiber=orange,
+  core=yellow, splice=red, splitter=cyan), found/error status.
+- **6 new backend tests** (81 total).
+
 ## Live deployment
 
 | | |
@@ -305,7 +323,7 @@ npm run dev
 ## Tests
 
 ```bash
-# backend (75 tests)
+# backend (81 tests)
 cd backend && pytest -q
 # frontend (6 tests)
 cd frontend && npm test -- --run
@@ -327,7 +345,7 @@ GitHub Actions (`.github/workflows/ci.yml`):
 | 4 | ✅ Complete | Mobile (React Native + Expo + GPS + facial + offline sync) |
 | 5 | ✅ Complete | Customers + Field Service (customers, locations, visits, work orders) |
 | 6 | ✅ Complete | Network GIS (map, assets, fiber cables/cores, splices, splitters, PostGIS) |
-| 7 | Pending | Network Trace |
+| 7 | ✅ Complete | Network Trace (customer→OLT, OLT→customer, core trace) |
 | 8 | Pending | Inventory |
 | 9 | Pending | Procurement |
 | 10 | Pending | Accounting |
