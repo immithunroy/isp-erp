@@ -14,7 +14,7 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
 [`docs/architecture.md`](./docs/architecture.md) /
 [`docs/database-design.md`](./docs/database-design.md) for the design.
 
-## Current status: **Phase 7 — Network Trace**
+## Current status: **Phase 8 — Inventory**
 
 ### Phase 1 — Foundation (complete)
 - Repository scaffold (mono-repo): `backend/`, `frontend/`.
@@ -183,6 +183,54 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
   core=yellow, splice=red, splitter=cyan), found/error status.
 - **6 new backend tests** (81 total).
 
+### Phase 8 — Inventory (complete)
+- **Warehouses** — org-scoped unique code, address + coordinates, manager
+  link, active flag. Cannot be deleted while it holds stock or is
+  referenced by a purchase order.
+- **Stock item catalog** — org-scoped unique SKU, unit of measure, unit
+  cost, reorder level, category, and `asset_class` (the network
+  `asset_type` the item is typically installed into).
+- **Stock levels** — one row per (warehouse, item), maintained lazily by
+  movements. Exposes on-hand, reserved, available, reorder level, and an
+  `is_low` flag. Dedicated `/low` endpoint reports shortfall per pair,
+  plus a `/summary` endpoint (item/warehouse counts, total quantity,
+  total value, low-stock count).
+- **Stock movements** — append-only audit trail. Every quantity change
+  writes a `stock_movement` row recording the signed delta and the
+  resulting `balance_after`, so on-hand quantity is always reproducible
+  from history. Types: `receipt`, `issue`, `adjustment` (signed delta),
+  and `transfer_in`/`transfer_out` (paired rows). Issuing below zero is
+  rejected with 409.
+- **Stock ↔ network assets** — movements may carry `network_asset_id`,
+  so field consumption of spares is attributed to the asset it was
+  installed into. Filter the movement history by asset to answer
+  "what was fitted to this OLT?" — this is the Phase 8 link between
+  inventory and the network model.
+- **Purchase orders** — status workflow `draft → approved →
+  partially_received → received`, with `cancelled` from draft/approved.
+  Dynamic lines with quantity, unit cost, and line totals; subtotal/tax/
+  total recalculated on every change. Approve and cancel are separate
+  permission-gated transitions. Receiving validates that the quantity
+  does not exceed the outstanding amount, writes `receipt` movements
+  (traceable back via `reference_type=purchase_order`), and flips the PO
+  to `received` only when every line is complete. Edits are locked once
+  the PO leaves `draft`.
+- **10 new permission codes** (`inventory:warehouses:*`, `items:*`,
+  `stock:*`, `movements:read`, `purchase_orders:read/write/approve`).
+- **16 new backend tests** (97 total), including offline sync of queued
+  field stock issues.
+- **Frontend**: Inventory Stock (summary cards, stock levels, movement
+  history, receipt/issue/adjust + transfer modals), Warehouses, Stock
+  Items, and Purchase Orders (status-gated actions, dynamic line
+  editor, receive modal). Nav gated on the real inventory permission
+  codes.
+- **Mobile**: Consume Stock screen — warehouse + item pickers, live
+  available-quantity guard, optional network-asset typeahead filtered by
+  the item's `asset_class`, offline queue support.
+- **Mobile sync**: `/mobile/sync` now accepts a `stock_movement` entity
+  type so issues recorded offline in the field are applied server-side
+  (idempotency-keyed). Transfers are deliberately rejected offline.
+
 ## Live deployment
 
 | | |
@@ -323,7 +371,7 @@ npm run dev
 ## Tests
 
 ```bash
-# backend (81 tests)
+# backend (97 tests)
 cd backend && pytest -q
 # frontend (6 tests)
 cd frontend && npm test -- --run
@@ -346,8 +394,8 @@ GitHub Actions (`.github/workflows/ci.yml`):
 | 5 | ✅ Complete | Customers + Field Service (customers, locations, visits, work orders) |
 | 6 | ✅ Complete | Network GIS (map, assets, fiber cables/cores, splices, splitters, PostGIS) |
 | 7 | ✅ Complete | Network Trace (customer→OLT, OLT→customer, core trace) |
-| 8 | Pending | Inventory |
-| 9 | Pending | Procurement |
+| 8 | ✅ Complete | Inventory (warehouses, stock items, stock levels, movements, purchase orders) |
+| 9 | Pending | Procurement (suppliers, RFQ, PO approvals) |
 | 10 | Pending | Accounting |
 | 11 | Pending | Operational Billing |
 | 12 | Pending | Reporting + hardening |

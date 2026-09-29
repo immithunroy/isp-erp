@@ -20,6 +20,10 @@ import { NetworkMap } from "./pages/NetworkMap";
 import { NetworkAssets } from "./pages/NetworkAssets";
 import { FiberManagement } from "./pages/FiberManagement";
 import { NetworkTrace } from "./pages/NetworkTrace";
+import { InventoryStock } from "./pages/InventoryStock";
+import { Warehouses } from "./pages/Warehouses";
+import { StockItems } from "./pages/StockItems";
+import { PurchaseOrders } from "./pages/PurchaseOrders";
 import { AppShell } from "./components/AppShell";
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -223,6 +227,46 @@ export default function App() {
           <Protected>
             <AppShell>
               <NetworkTrace />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/inventory/stock"
+        element={
+          <Protected>
+            <AppShell>
+              <InventoryStock />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/inventory/warehouses"
+        element={
+          <Protected>
+            <AppShell>
+              <Warehouses />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/inventory/items"
+        element={
+          <Protected>
+            <AppShell>
+              <StockItems />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/inventory/purchase-orders"
+        element={
+          <Protected>
+            <AppShell>
+              <PurchaseOrders />
             </AppShell>
           </Protected>
         }

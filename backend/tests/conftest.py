@@ -64,6 +64,9 @@ def db_engine():
                 # Network GIS
                 "network_assets", "fiber_cables", "fiber_cores",
                 "splices", "splitter_ports", "customer_network_links",
+                # Inventory
+                "warehouses", "stock_items", "stock_levels",
+                "stock_movements", "purchase_orders", "purchase_order_lines",
             }
         ])
     yield engine

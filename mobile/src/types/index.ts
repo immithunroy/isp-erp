@@ -416,3 +416,91 @@ export interface MapItem {
   latitude: number;
   longitude: number;
 }
+
+// ── Phase 8: Inventory ────────────────────────────────────────────────
+export interface Warehouse {
+  id: number;
+  organization_id: number;
+  code: string;
+  name: string;
+  address: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  manager_id: number | null;
+  is_active: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StockItem {
+  id: number;
+  organization_id: number;
+  sku: string;
+  name: string;
+  description: string | null;
+  category: string | null;
+  unit: string;
+  unit_cost: number | null;
+  reorder_level: number;
+  asset_class: string | null;
+  is_active: boolean;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StockLevel {
+  id: number;
+  warehouse_id: number;
+  item_id: number;
+  quantity: number;
+  reserved_quantity: number;
+  available_quantity: number;
+  reorder_level: number;
+  is_low: boolean;
+  updated_at: string;
+}
+
+export type StockMovementType =
+  | "receipt"
+  | "issue"
+  | "adjustment"
+  | "transfer_in"
+  | "transfer_out";
+
+/** Movement types a client may post directly against a single warehouse. */
+export type ManualStockMovementType = "receipt" | "issue" | "adjustment";
+
+export interface StockMovement {
+  id: number;
+  organization_id: number;
+  movement_type: StockMovementType;
+  item_id: number;
+  warehouse_id: number;
+  to_warehouse_id: number | null;
+  quantity: number;
+  signed_delta: number;
+  balance_after: number | null;
+  network_asset_id: number | null;
+  work_order_id: number | null;
+  reference_type: string | null;
+  reference_id: number | null;
+  reason: string | null;
+  moved_at: string;
+  created_by: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StockMovementCreate {
+  organization_id: number;
+  movement_type: ManualStockMovementType;
+  item_id: number;
+  warehouse_id: number;
+  /** Signed delta for adjustments, positive amount for receipt / issue. */
+  quantity: number;
+  network_asset_id?: number;
+  work_order_id?: number;
+  reason?: string;
+}

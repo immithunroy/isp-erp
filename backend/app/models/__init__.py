@@ -29,6 +29,14 @@ from app.models.hrm import (
     LeaveType,
     Shift,
 )
+from app.models.inventory import (
+    PurchaseOrder,
+    PurchaseOrderLine,
+    StockItem,
+    StockLevel,
+    StockMovement,
+    Warehouse,
+)
 from app.models.mobile import GpsRecord, SyncQueue
 from app.models.network import (
     CustomerNetworkLink,
@@ -78,4 +86,11 @@ __all__ = [
     "Splice",
     "SplitterPort",
     "CustomerNetworkLink",
+    # inventory
+    "Warehouse",
+    "StockItem",
+    "StockLevel",
+    "StockMovement",
+    "PurchaseOrder",
+    "PurchaseOrderLine",
 ]

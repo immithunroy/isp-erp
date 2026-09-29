@@ -19,6 +19,7 @@ import { TJBoxScreen } from "./src/screens/TJBoxScreen";
 import { EnclosureScreen } from "./src/screens/EnclosureScreen";
 import { SplitterScreen } from "./src/screens/SplitterScreen";
 import { FiberSurveyScreen } from "./src/screens/FiberSurveyScreen";
+import { ConsumeStockScreen } from "./src/screens/ConsumeStockScreen";
 import { PhotoCaptureScreen } from "./src/screens/PhotoCaptureScreen";
 import { EquipmentScanScreen } from "./src/screens/EquipmentScanScreen";
 import { JobCompletionScreen } from "./src/screens/JobCompletionScreen";
@@ -104,6 +105,11 @@ function AppNavigator() {
               name="FiberSurvey"
               component={FiberSurveyScreen}
               options={{ title: "Fiber Survey", headerShown: true }}
+            />
+            <Stack.Screen
+              name="ConsumeStock"
+              component={ConsumeStockScreen}
+              options={{ title: "Consume Stock", headerShown: true }}
             />
             <Stack.Screen
               name="PhotoCapture"

@@ -6,6 +6,7 @@ from app.api.v1 import (
     customers,
     health,
     hrm,
+    inventory,
     mobile,
     network,
     organizations,
@@ -53,3 +54,9 @@ api_router.include_router(network.customer_links_router)
 api_router.include_router(network.map_router)
 # Network Trace
 api_router.include_router(trace.router)
+# Inventory
+api_router.include_router(inventory.warehouses_router)
+api_router.include_router(inventory.items_router)
+api_router.include_router(inventory.stock_router)
+api_router.include_router(inventory.movements_router)
+api_router.include_router(inventory.purchase_orders_router)

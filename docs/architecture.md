@@ -235,8 +235,49 @@ code. 6 new tests (81 total). Frontend: Network Trace visualization page
 with trace type selector, vertical node list with arrows, color-coded by kind.
 Mobile: no trace screen needed (trace is a desktop engineering tool).
 
-Subsequent phases (Inventory, Procurement, Accounting, Billing,
-Reports) will be built incrementally with verification between phases.
+### Phase 8 - Inventory (complete)
+Warehouses (org-scoped unique code, coordinates, manager, active flag;
+deletion blocked while stock or POs reference it). Stock item catalog
+(org-scoped unique SKU, unit, unit_cost, reorder_level, category, and
+`asset_class` mapping to a network `asset_type`). Stock levels: one row
+per (warehouse, item), created lazily by the first movement, exposing
+on-hand / reserved / available / is_low; plus `/stock/low` (shortfall)
+and `/stock/summary` (counts, total quantity, total value, low count).
+
+Stock quantity is never edited directly. Every change goes through
+`stock_movements`, an append-only trail that records `signed_delta` and
+the resulting `balance_after`, so on-hand is always reproducible by
+replaying history. Movement types: `receipt` (+), `issue` (-),
+`adjustment` (signed delta), and `transfer_in`/`transfer_out` written as
+a paired set when stock moves between warehouses. Issuing more than is on
+hand is rejected (409 Insufficient Stock).
+
+Inventory links to the network model via `stock_movements.network_asset_id`:
+a field issue records which network asset the spare was fitted into, and
+`GET /inventory/movements?network_asset_id=` answers "what was installed
+into this asset?".
+
+Purchase orders: `draft -> approved -> partially_received -> received`,
+or `cancelled` from draft/approved. Lines carry quantity / unit_cost /
+line_total; subtotal, tax and total are recalculated on every header or
+line change. Approve and cancel are separate permission-gated
+transitions; once a PO leaves draft it is immutable. Receiving validates
+each line against its outstanding amount, writes `receipt` movements
+linked back via `reference_type=purchase_order`, and only sets `received`
+when every line is complete. 10 new permission codes. 16 new tests
+(97 total). `/mobile/sync` accepts a `stock_movement` entity type so
+offline-queued field issues land server-side, idempotency-keyed;
+transfers are rejected offline because both warehouses must exist at
+queue time.
+
+Frontend: Inventory Stock (summary cards, level table, movement history,
+receipt/issue/adjust and transfer modals), Warehouses, Stock Items, and
+Purchase Orders (status-gated actions, dynamic line editor, receive
+modal). Mobile: Consume Stock screen with available-quantity guard,
+asset typeahead filtered by `asset_class`, and offline queueing.
+
+Subsequent phases (Procurement, Accounting, Billing, Reports) will be built
+incrementally with verification between phases.
 
 ## 10. Unknowns / out of scope for now
 

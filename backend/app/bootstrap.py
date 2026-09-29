@@ -61,6 +61,17 @@ CORE_PERMISSIONS = [
     ("network:map:read", "network", "View network map"),
     # Network Trace
     ("network:trace:read", "network", "Run network trace"),
+    # Inventory
+    ("inventory:warehouses:read", "inventory", "Read warehouses"),
+    ("inventory:warehouses:write", "inventory", "Create/update warehouses"),
+    ("inventory:items:read", "inventory", "Read stock item catalog"),
+    ("inventory:items:write", "inventory", "Create/update stock items"),
+    ("inventory:stock:read", "inventory", "Read stock levels"),
+    ("inventory:stock:write", "inventory", "Receive/issue/adjust/transfer stock"),
+    ("inventory:movements:read", "inventory", "Read stock movement history"),
+    ("inventory:purchase_orders:read", "inventory", "Read purchase orders"),
+    ("inventory:purchase_orders:write", "inventory", "Create/update purchase orders"),
+    ("inventory:purchase_orders:approve", "inventory", "Approve purchase orders"),
 ]
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@isp-erp.example.com")

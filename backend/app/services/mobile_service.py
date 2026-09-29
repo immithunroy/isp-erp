@@ -23,6 +23,40 @@ def _get_employee_by_user(db: Session, user_id: int) -> Employee | None:
     return db.scalar(select(Employee).where(Employee.user_id == user_id))
 
 
+def submit_stock_movement(
+    db: Session, employee_id: int, payload: dict, *, user_id: int | None = None,
+    _commit: bool = True,
+):
+    """Apply a stock movement queued offline from the mobile app.
+
+    Only issue/adjustment/receipt against an existing warehouse are accepted;
+    transfers are rejected because they need both warehouses to exist on the
+    server at queue time.
+    """
+    from app.services.inventory_service import create_movement
+
+    emp = db.get(Employee, employee_id)
+    if not emp:
+        raise problem(404, "Not Found", "Employee not found.")
+
+    body = dict(payload)
+    movement_type = body.pop("movement_type", "issue")
+    if movement_type == "transfer":
+        raise problem(
+            400, "Bad Request", "Transfers cannot be queued offline; use a transfer PO."
+        )
+    body["movement_type"] = movement_type
+    body["organization_id"] = emp.organization_id
+    body.pop("id", None)
+    body.pop("created_by", None)
+    mv = create_movement(db, body, user_id=user_id)
+    if not _commit:
+        # create_movement commits internally; the sync loop owns the
+        # transaction, so nothing more to do here.
+        pass
+    return mv
+
+
 def submit_gps_record(
     db: Session, employee_id: int, payload: dict, *, user_id: int | None = None,
     _commit: bool = True,
@@ -158,6 +192,11 @@ def process_sync_batch(
                     db, employee_id, payload, user_id=user_id, _commit=False
                 )
                 record_id = gps.id
+            elif entity_type == "stock_movement":
+                mv = submit_stock_movement(
+                    db, employee_id, payload, user_id=user_id, _commit=False
+                )
+                record_id = mv.id
             else:
                 raise problem(400, "Bad Request", f"Unknown entity type: {entity_type}")
 
