@@ -14,7 +14,7 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
 [`docs/architecture.md`](./docs/architecture.md) /
 [`docs/database-design.md`](./docs/database-design.md) for the design.
 
-## Current status: **Phase 8 — Inventory**
+## Current status: **Phase 9 — Procurement**
 
 ### Phase 1 — Foundation (complete)
 - Repository scaffold (mono-repo): `backend/`, `frontend/`.
@@ -206,15 +206,16 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
   installed into. Filter the movement history by asset to answer
   "what was fitted to this OLT?" — this is the Phase 8 link between
   inventory and the network model.
-- **Purchase orders** — status workflow `draft → approved →
-  partially_received → received`, with `cancelled` from draft/approved.
-  Dynamic lines with quantity, unit cost, and line totals; subtotal/tax/
-  total recalculated on every change. Approve and cancel are separate
-  permission-gated transitions. Receiving validates that the quantity
-  does not exceed the outstanding amount, writes `receipt` movements
-  (traceable back via `reference_type=purchase_order`), and flips the PO
-  to `received` only when every line is complete. Edits are locked once
-  the PO leaves `draft`.
+- **Purchase orders** — status workflow `draft → pending_approval →
+  approved → partially_received → received`, with `cancelled` from
+  draft/pending_approval/approved. Dynamic lines with quantity, unit cost,
+  and line totals; subtotal/tax/total recalculated on every change.
+  Approval now goes through the Phase 9 multi-level chain. Receiving
+  validates that the quantity does not exceed the outstanding amount,
+  writes `receipt` movements (traceable back via
+  `reference_type=purchase_order`), and flips the PO to `received` only
+  when every line is complete. Edits are locked once the PO leaves
+  `draft`.
 - **10 new permission codes** (`inventory:warehouses:*`, `items:*`,
   `stock:*`, `movements:read`, `purchase_orders:read/write/approve`).
 - **16 new backend tests** (97 total), including offline sync of queued
@@ -230,6 +231,49 @@ See [`isp-erp-prompt.txt`](./isp-erp-prompt.txt) for the full specification and
 - **Mobile sync**: `/mobile/sync` now accepts a `stock_movement` entity
   type so issues recorded offline in the field are applied server-side
   (idempotency-keyed). Transfers are deliberately rejected offline.
+
+### Phase 9 — Procurement (complete)
+- **Suppliers** — org-scoped unique code, contact details, category,
+  payment terms, lead time, tax ID and bank account, active flag.
+  A supplier that has quoted cannot be deleted (409); deactivate instead.
+- **Requests for quotation (RFQ)** — status workflow `draft → issued →
+  closed`, plus `cancelled` from draft/issued. Drafts hold a dynamic line
+  list (stock item, quantity, optional target unit cost) and can still
+  be edited; issuing locks the RFQ so the bid basis cannot change
+  mid-flight. Cancelling rejects any quotes still in `received`.
+- **Supplier quotes** — any number of suppliers may bid on an issued
+  RFQ, once each. Totals (`subtotal`, `tax`, `total`) are derived from
+  the bid lines server-side, and each line is flagged `over_target` when
+  the bid exceeds the RFQ's target unit cost, which is what makes the
+  comparison view useful. Quotes are listed cheapest-first.
+- **Awarding** — accepting a quote closes the RFQ and automatically
+  rejects every competing quote, so exactly one supplier can win an RFQ.
+  A quote can also be rejected on its own, leaving the RFQ open.
+- **Quote → purchase order** — an accepted quote converts into a draft
+  purchase order (`PO-<rfq_number>`) against a chosen warehouse, carrying
+  the supplier details and re-deriving its own subtotal/total. The PO
+  still has to clear the approval chain before stock can be received, and
+  a quote can only ever be converted once.
+- **Multi-level PO approval** — replaces the Phase 8 single-step approve
+  endpoint (`POST /inventory/purchase-orders/{id}/approve`, now removed).
+  A draft PO is submitted with an ordered list of approvers, whose list
+  position is their approval level. Levels must be decided in ascending
+  order; only the assigned approver (or a superuser) may decide their
+  own level. The final approval moves the PO to `approved`; a rejection
+  returns it to `draft` for revision with the decision history preserved
+  for audit.
+- **10 new permission codes** (`procurement:suppliers:read/write`,
+  `rfq:read/write`, `quotes:read/write/approve`,
+  `purchase_orders:read/write/approve`).
+- **14 new backend tests** (111 total), covering quote arithmetic,
+  single-winner award rules, conversion guards, approval ordering,
+  approver identity, and edit/delete locking while pending.
+- **Frontend**: Suppliers (search, category/active filters, contact
+  details) and RFQs (status filter, issue/cancel, per-RFQ quote
+  comparison with over-target warnings, award, and convert-to-PO). The
+  Purchase Orders page now builds and drives the approval chain, and
+  reports the new `pending_approval` status. Nav gated on the real
+  procurement permission codes.
 
 ## Live deployment
 
@@ -371,7 +415,7 @@ npm run dev
 ## Tests
 
 ```bash
-# backend (97 tests)
+# backend (111 tests)
 cd backend && pytest -q
 # frontend (6 tests)
 cd frontend && npm test -- --run
@@ -395,7 +439,7 @@ GitHub Actions (`.github/workflows/ci.yml`):
 | 6 | ✅ Complete | Network GIS (map, assets, fiber cables/cores, splices, splitters, PostGIS) |
 | 7 | ✅ Complete | Network Trace (customer→OLT, OLT→customer, core trace) |
 | 8 | ✅ Complete | Inventory (warehouses, stock items, stock levels, movements, purchase orders) |
-| 9 | Pending | Procurement (suppliers, RFQ, PO approvals) |
+| 9 | ✅ Complete | Procurement (suppliers, RFQ, supplier quotes, quote→PO conversion, multi-level PO approvals) |
 | 10 | Pending | Accounting |
 | 11 | Pending | Operational Billing |
 | 12 | Pending | Reporting + hardening |

@@ -71,7 +71,20 @@ CORE_PERMISSIONS = [
     ("inventory:movements:read", "inventory", "Read stock movement history"),
     ("inventory:purchase_orders:read", "inventory", "Read purchase orders"),
     ("inventory:purchase_orders:write", "inventory", "Create/update purchase orders"),
-    ("inventory:purchase_orders:approve", "inventory", "Approve purchase orders"),
+    # Note: inventory:purchase_orders:approve was removed in Phase 9, when the
+    # single-step approve endpoint was replaced by the multi-level approval
+    # chain. Use procurement:purchase_orders:write/approve instead.
+    # Procurement
+    ("procurement:suppliers:read", "procurement", "Read suppliers"),
+    ("procurement:suppliers:write", "procurement", "Create/update suppliers"),
+    ("procurement:rfq:read", "procurement", "Read requests for quotation"),
+    ("procurement:rfq:write", "procurement", "Create/update RFQs"),
+    ("procurement:quotes:read", "procurement", "Read supplier quotes"),
+    ("procurement:quotes:write", "procurement", "Record supplier quotes"),
+    ("procurement:quotes:approve", "procurement", "Accept/reject quotes and convert to PO"),
+    ("procurement:purchase_orders:read", "procurement", "Read PO approval chains"),
+    ("procurement:purchase_orders:write", "procurement", "Submit POs for approval"),
+    ("procurement:purchase_orders:approve", "procurement", "Decide PO approval levels"),
 ]
 
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@isp-erp.example.com")

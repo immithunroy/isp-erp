@@ -249,6 +249,7 @@ export function transferStock(body: StockTransferCreate): Promise<StockMovement[
 // ---------- Purchase orders ----------
 export type PurchaseOrderStatus =
   | "draft"
+  | "pending_approval"
   | "approved"
   | "partially_received"
   | "received"
@@ -369,12 +370,6 @@ export function addPurchaseOrderLine(
 export function deletePurchaseOrderLine(id: number, lineId: number): Promise<void> {
   return apiFetch<void>(`/inventory/purchase-orders/${id}/lines/${lineId}`, {
     method: "DELETE",
-  });
-}
-
-export function approvePurchaseOrder(id: number): Promise<PurchaseOrder> {
-  return apiFetch<PurchaseOrder>(`/inventory/purchase-orders/${id}/approve`, {
-    method: "POST",
   });
 }
 

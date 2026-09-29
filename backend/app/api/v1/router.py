@@ -10,6 +10,7 @@ from app.api.v1 import (
     mobile,
     network,
     organizations,
+    procurement,
     roles,
     settings,
     trace,
@@ -60,3 +61,8 @@ api_router.include_router(inventory.items_router)
 api_router.include_router(inventory.stock_router)
 api_router.include_router(inventory.movements_router)
 api_router.include_router(inventory.purchase_orders_router)
+# Procurement (suppliers, RFQ, quotes, PO approvals)
+api_router.include_router(procurement.suppliers_router)
+api_router.include_router(procurement.rfqs_router)
+api_router.include_router(procurement.quotes_router)
+api_router.include_router(procurement.approvals_router)

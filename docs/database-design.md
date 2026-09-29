@@ -383,12 +383,51 @@ capacity), `splitters` (asset_id fk, ratio text e.g. `1:8`, input_port_id).
 
 ---
 
-## H. Procurement (Phase 9 — design only now)
+## H. Procurement (Phase 9 — built, see migration `0008_procurement`)
 
-### purchase_requests, purchase_orders, purchase_order_lines,
-### goods_receipts, purchase_invoices, supplier_payments
-- Approvals via generic `approvals` table: id pk, entity_type, entity_id,
-  approver_id fk, status, decision_at, comment.
+The generic `approvals` idea below was replaced by a dedicated, ordered chain
+for purchase orders, because PO approval has real ordering and identity
+rules that a generic table would not enforce.
+
+### rfqs, rfq_lines
+- rfqs: id pk, organization_id fk, rfq_number unique, title,
+  status string(draft/issued/closed/cancelled), due_date, currency, notes,
+  created_by fk, issued_at, closed_at, cancelled_at, timestamps.
+- rfq_lines: id pk, rfq_id fk cascade, stock_item_id fk, quantity numeric,
+  target_unit_cost numeric nullable, notes.
+  - Lines are only editable while the RFQ is `draft`; issuing locks them so
+    the basis of the competition is frozen.
+
+### supplier_quotes, supplier_quote_lines
+- supplier_quotes: id pk, organization_id fk, rfq_id fk, supplier_id fk,
+  status string(received/accepted/rejected), currency, subtotal numeric,
+  tax_amount numeric, total_amount numeric, lead_time_days, valid_until,
+  notes, received_at, decided_at, purchase_order_id fk nullable
+  (set on conversion, so a quote converts at most once),
+  unique(rfq_id, supplier_id), timestamps.
+  - `subtotal` / `total_amount` are always derived from the quote lines
+    server-side, never accepted from the client.
+- supplier_quote_lines: id pk, quote_id fk cascade, rfq_line_id fk,
+  quantity numeric, unit_cost numeric, line_total numeric, notes.
+
+### purchase_order_approvals
+- id pk, purchase_order_id fk cascade, sequence int, approver_id fk,
+  status string(pending/approved/rejected), decided_at, comments, created_at,
+  unique(purchase_order_id, sequence).
+  - `sequence` is the approval level, set from the ordered approver list at
+    submission time. Levels are decided in ascending order; a rejection puts
+    the PO back to `draft` but leaves these rows in place as the audit trail,
+    after which the chain is rebuilt.
+
+### Awarding
+- Accepting a quote sets it `accepted`, rejects every other `received` quote
+  on the same RFQ, and closes the RFQ — all in one transaction, so an RFQ
+  can never have two winners.
+
+### Suppliers
+- Extended from the Phase 8 sketch in section G: added `category`,
+  `lead_time_days`, `tax_id`, `bank_account`, `notes`, and timestamps.
+  Deletion is blocked while quotes reference the supplier.
 
 ---
 

@@ -257,16 +257,16 @@ a field issue records which network asset the spare was fitted into, and
 `GET /inventory/movements?network_asset_id=` answers "what was installed
 into this asset?".
 
-Purchase orders: `draft -> approved -> partially_received -> received`,
-or `cancelled` from draft/approved. Lines carry quantity / unit_cost /
+Purchase orders: `draft -> pending_approval -> approved ->
+partially_received -> received`, or `cancelled` from
+draft/pending_approval/approved. Lines carry quantity / unit_cost /
 line_total; subtotal, tax and total are recalculated on every header or
-line change. Approve and cancel are separate permission-gated
-transitions; once a PO leaves draft it is immutable. Receiving validates
-each line against its outstanding amount, writes `receipt` movements
-linked back via `reference_type=purchase_order`, and only sets `received`
-when every line is complete. 10 new permission codes. 16 new tests
-(97 total). `/mobile/sync` accepts a `stock_movement` entity type so
-offline-queued field issues land server-side, idempotency-keyed;
+line change. Once a PO leaves draft it is immutable (including deletion).
+Receiving validates each line against its outstanding amount, writes
+`receipt` movements linked back via `reference_type=purchase_order`, and
+only sets `received` when every line is complete. 10 new permission codes.
+16 new tests (97 total). `/mobile/sync` accepts a `stock_movement` entity
+type so offline-queued field issues land server-side, idempotency-keyed;
 transfers are rejected offline because both warehouses must exist at
 queue time.
 
@@ -276,8 +276,59 @@ Purchase Orders (status-gated actions, dynamic line editor, receive
 modal). Mobile: Consume Stock screen with available-quantity guard,
 asset typeahead filtered by `asset_class`, and offline queueing.
 
-Subsequent phases (Procurement, Accounting, Billing, Reports) will be built
-incrementally with verification between phases.
+### Phase 9 - Procurement (complete)
+Suppliers: org-scoped unique code, contact details, category, payment
+terms, lead time, tax ID, bank account, active flag. Deletion is blocked
+while quotes exist (409) because quotes are the audit record of a sourcing
+decision; deactivate instead.
+
+RFQs: `draft -> issued -> closed`, or `cancelled` from draft/issued. The
+`issued` split is the important one: a draft is freely editable, but
+issuing an RFQ locks its lines, so the basis of the competition cannot be
+changed after suppliers have seen it. Quotes are only accepted against an
+issued RFQ.
+
+Supplier quotes: each supplier may bid on a given RFQ once, against any
+subset of its lines. `subtotal` / `tax_amount` / `total_amount` are derived
+server-side from the bid lines rather than trusted from the client, and
+each line carries an `over_target` flag when the bid exceeds the RFQ line's
+target unit cost - that comparison is what the award decision rests on.
+Quotes are listed cheapest-first.
+
+Awarding is single-winner by construction: accepting a quote closes the RFQ
+and rejects every competing quote in the same transaction, so the RFQ can
+never end up with two winners. Rejecting a single quote leaves the RFQ open
+for a decision on the remaining bids.
+
+An accepted quote converts into a draft purchase order (`PO-<rfq_number>`)
+against a chosen warehouse, inheriting supplier details and re-deriving its
+own subtotal/total from the converted lines. The conversion is one-shot
+(guarded by `supplier_quotes.purchase_order_id`), and the resulting PO still
+has to clear the approval chain before stock can be received.
+
+PO approval is a multi-level chain that replaces the Phase 8 single-step
+approve endpoint. Submitting a draft PO takes an ordered list of approver
+ids; the list position is the approval level. Invariants enforced
+server-side:
+
+- levels are decided in ascending order (a later level is refused while an
+  earlier one is pending);
+- only the assigned approver, or a superuser, may decide a level;
+- a level cannot be decided twice;
+- the last pending approval moves the PO to `approved` and stamps
+  `approved_by` / `approved_at`;
+- a rejection returns the PO to `draft` for revision while keeping the
+  decision history (`purchase_order_approvals`) intact for audit, and the
+  chain can then be rebuilt.
+
+10 new permission codes. 14 new tests (111 total).
+
+Frontend: Suppliers and RFQs pages (quote comparison with over-target
+warnings, award, convert-to-PO), and the Purchase Orders page now builds
+and drives the approval chain and renders `pending_approval`.
+
+Subsequent phases (Accounting, Billing, Reports) will be built incrementally
+with verification between phases.
 
 ## 10. Unknowns / out of scope for now
 

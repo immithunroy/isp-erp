@@ -46,6 +46,14 @@ from app.models.network import (
     Splice,
     SplitterPort,
 )
+from app.models.procurement import (
+    PurchaseOrderApproval,
+    Rfq,
+    RfqLine,
+    Supplier,
+    SupplierQuote,
+    SupplierQuoteLine,
+)
 
 __all__ = [
     # core
@@ -93,4 +101,11 @@ __all__ = [
     "StockMovement",
     "PurchaseOrder",
     "PurchaseOrderLine",
+    # procurement
+    "Supplier",
+    "Rfq",
+    "RfqLine",
+    "SupplierQuote",
+    "SupplierQuoteLine",
+    "PurchaseOrderApproval",
 ]

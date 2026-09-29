@@ -5,7 +5,6 @@ import { useAuth } from "../lib/auth";
 import { listOrganizations, type Organization } from "../lib/core-api";
 import {
   addPurchaseOrderLine,
-  approvePurchaseOrder,
   cancelPurchaseOrder,
   createPurchaseOrder,
   deletePurchaseOrder,
@@ -25,6 +24,14 @@ import {
   type StockItem,
   type Warehouse,
 } from "../lib/inventory-api";
+import {
+  approvePurchaseOrderLevel,
+  listPurchaseOrderApprovals,
+  rejectPurchaseOrderLevel,
+  submitPurchaseOrderForApproval,
+  type PurchaseOrderApproval,
+} from "../lib/procurement-api";
+import { listUsers, type UserDetail } from "../lib/core-api";
 import { Badge } from "../components/Badge";
 import { Button } from "../components/Button";
 import { Input } from "../components/Input";
@@ -44,6 +51,7 @@ const PAGE_SIZE = 20;
 
 const STATUSES: { value: PurchaseOrderStatus; label: string }[] = [
   { value: "draft", label: "Draft" },
+  { value: "pending_approval", label: "Pending approval" },
   { value: "approved", label: "Approved" },
   { value: "partially_received", label: "Partially received" },
   { value: "received", label: "Received" },
@@ -54,6 +62,8 @@ function statusBadgeClass(status: PurchaseOrderStatus): string {
   switch (status) {
     case "draft":
       return "bg-slate-200 text-slate-700";
+    case "pending_approval":
+      return "bg-amber-100 text-amber-700";
     case "approved":
       return "bg-blue-100 text-blue-700";
     case "partially_received":
@@ -102,12 +112,13 @@ export function PurchaseOrders() {
   const [editing, setEditing] = useState<PurchaseOrder | null>(null);
   const [lineTarget, setLineTarget] = useState<PurchaseOrder | null>(null);
   const [receiveTarget, setReceiveTarget] = useState<PurchaseOrder | null>(null);
+  const [approvalTarget, setApprovalTarget] = useState<PurchaseOrder | null>(null);
 
   const canRead =
     hasPermission("inventory:purchase_orders:read") ||
     hasPermission("inventory:purchase_orders:write");
   const canWrite = hasPermission("inventory:purchase_orders:write");
-  const canApprove = hasPermission("inventory:purchase_orders:approve");
+  const canSubmitForApproval = hasPermission("procurement:purchase_orders:write");
   const canReadItems = canRead || hasPermission("inventory:items:read");
   const canReadWarehouses = canRead || hasPermission("inventory:warehouses:read");
 
@@ -189,10 +200,6 @@ export function PurchaseOrders() {
       deletePurchaseOrderLine(id, lineId),
     onSuccess: () => invalidate(),
   });
-  const approveM = useMutation({
-    mutationFn: (id: number) => approvePurchaseOrder(id),
-    onSuccess: () => invalidate(),
-  });
   const cancelM = useMutation({
     mutationFn: (id: number) => cancelPurchaseOrder(id),
     onSuccess: () => invalidate(),
@@ -230,8 +237,7 @@ export function PurchaseOrders() {
       deleteLineM.mutate({ id: po.id, lineId: line.id });
   };
   const onApprove = (po: PurchaseOrder) => {
-    if (window.confirm(`Approve purchase order "${po.po_number}"?`))
-      approveM.mutate(po.id);
+    setApprovalTarget(po);
   };
   const onCancel = (po: PurchaseOrder) => {
     if (window.confirm(`Cancel purchase order "${po.po_number}"?`))
@@ -241,7 +247,6 @@ export function PurchaseOrders() {
   const actionError =
     deleteM.error ??
     deleteLineM.error ??
-    approveM.error ??
     cancelM.error ??
     addLineM.error;
 
@@ -393,14 +398,32 @@ export function PurchaseOrders() {
                             </Button>
                           </>
                         )}
-                        {po.status === "draft" && canApprove && (
+                        {po.status === "draft" && canSubmitForApproval && (
                           <Button
                             variant="ghost"
                             size="sm"
-                            disabled={approveM.isPending}
                             onClick={() => onApprove(po)}
                           >
-                            Approve
+                            Submit for approval
+                          </Button>
+                        )}
+                        {po.status === "pending_approval" && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onApprove(po)}
+                          >
+                            Approvals
+                          </Button>
+                        )}
+                        {po.status === "pending_approval" && canWrite && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-600"
+                            onClick={() => onCancel(po)}
+                          >
+                            Cancel
                           </Button>
                         )}
                         {isReceivable(po.status) && canWrite && (
@@ -508,8 +531,248 @@ export function PurchaseOrders() {
           onSubmit={(body) => receiveM.mutate({ id: receiveTarget.id, body })}
         />
       )}
+
+      {approvalTarget && (
+        <ApprovalChainForm
+          po={approvalTarget}
+          onClose={() => setApprovalTarget(null)}
+          onChanged={() => {
+            invalidate();
+          }}
+        />
+      )}
     </div>
   );
+}
+
+/**
+ * Approval chain panel. A draft purchase order is submitted with an ordered
+ * list of approvers; from then on each level is approved or rejected in turn,
+ * and the final approval moves the PO to `approved`.
+ */
+function ApprovalChainForm({
+  po,
+  onClose,
+  onChanged,
+}: {
+  po: PurchaseOrder;
+  onClose: () => void;
+  onChanged: () => void;
+}) {
+  const { hasPermission, user } = useAuth();
+  const canDecide = hasPermission("procurement:purchase_orders:approve");
+  const chainQ = useQuery({
+    queryKey: ["po-approvals", po.id],
+    queryFn: () => listPurchaseOrderApprovals(po.id),
+  });
+  const usersQ = useQuery({
+    queryKey: ["users-all-active"],
+    queryFn: () => listUsers({ page: 1, page_size: 500, is_active: true }),
+    staleTime: 60_000,
+    enabled: po.status === "draft",
+  });
+
+  const [approverIds, setApproverIds] = useState<number[]>([]);
+  const [comments, setComments] = useState<Record<number, string>>({});
+
+  const submitM = useMutation({
+    mutationFn: () => submitPurchaseOrderForApproval(po.id, approverIds),
+    onSuccess: () => {
+      onChanged();
+      chainQ.refetch();
+    },
+  });
+  const decideM = useMutation({
+    mutationFn: ({ sequence, approve }: { sequence: number; approve: boolean }) =>
+      approve
+        ? approvePurchaseOrderLevel(po.id, sequence, comments[sequence] ?? null)
+        : rejectPurchaseOrderLevel(po.id, sequence, comments[sequence] ?? null),
+    onSuccess: () => {
+      onChanged();
+      chainQ.refetch();
+    },
+  });
+
+  const chain = chainQ.data ?? [];
+  const users: UserDetail[] = usersQ.data?.items ?? [];
+  const error = submitM.error ?? decideM.error;
+
+  const addApprover = (userId: number) => {
+    if (!userId) return;
+    setApproverIds((prev) => (prev.includes(userId) ? prev : [...prev, userId]));
+  };
+  const removeApprover = (userId: number) => {
+    setApproverIds((prev) => prev.filter((id) => id !== userId));
+  };
+  const userName = (id: number) => users.find((u) => u.id === id)?.full_name ?? `#${id}`;
+
+  // Only the first still-pending level can be decided.
+  const activeLevel = chain.find((c) => c.status === "pending");
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={`Approvals — ${po.po_number}`}
+      size="lg"
+      footer={
+        <Button variant="secondary" onClick={onClose}>
+          Close
+        </Button>
+      }
+    >
+      <div className="space-y-4">
+        {po.status === "draft" ? (
+          <div className="space-y-3">
+            <p className="text-sm text-slate-600">
+              Build the approval chain. Approvers are decided in the order listed,
+              and the purchase order becomes approved only once the last level signs
+              off. Rejecting at any level returns it to draft.
+            </p>
+            <div className="space-y-2">
+              <label className="text-xs font-medium text-slate-500">Approvers in order</label>
+              {approverIds.length === 0 && (
+                <p className="text-sm text-slate-400">No approvers selected yet.</p>
+              )}
+              {approverIds.map((id, index) => (
+                <div
+                  key={id}
+                  className="flex items-center justify-between rounded-md border border-slate-200 px-3 py-2 text-sm"
+                >
+                  <span>
+                    <span className="mr-2 rounded bg-slate-100 px-1.5 py-0.5 text-xs font-semibold">
+                      {index + 1}
+                    </span>
+                    {userName(id)}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-red-600"
+                    onClick={() => removeApprover(id)}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              ))}
+            </div>
+            <div className="space-y-1">
+              <label className="text-xs font-medium text-slate-500">Add approver</label>
+              <select
+                className="h-10 w-full rounded-md border border-slate-300 bg-white px-3 text-sm"
+                value=""
+                onChange={(e) => addApprover(Number(e.target.value))}
+              >
+                <option value="">— Select user —</option>
+                {users
+                  .filter((u) => !approverIds.includes(u.id))
+                  .map((u) => (
+                    <option key={u.id} value={String(u.id)}>
+                      {u.full_name} ({u.email})
+                    </option>
+                  ))}
+              </select>
+            </div>
+            <Button
+              onClick={() => submitM.mutate()}
+              disabled={submitM.isPending || approverIds.length === 0}
+            >
+              {submitM.isPending ? "Submitting..." : "Submit for approval"}
+            </Button>
+          </div>
+        ) : chainQ.isLoading ? (
+            <LoadingState />
+          ) : chainQ.isError ? (
+            <ErrorState error={chainQ.error} />
+          ) : chain.length === 0 ? (
+            <EmptyState text="This purchase order is not in the approval flow." />
+          ) : (
+            <div className="space-y-3">
+              <Table>
+                <TableHead>
+                  <Tr>
+                    <Th>Level</Th>
+                    <Th>Approver</Th>
+                    <Th>Status</Th>
+                    <Th>Decided</Th>
+                    <Th>Comments</Th>
+                  </Tr>
+                </TableHead>
+                <TableBody>
+                  {chain.map((c) => (
+                    <Tr key={c.id}>
+                      <Td>{c.sequence}</Td>
+                      <Td>{c.approver_name ?? `#${c.approver_id}`}</Td>
+                      <Td>
+                        <ApprovalBadge status={c.status} />
+                      </Td>
+                      <Td className="text-slate-500">{fmtDate(c.decided_at)}</Td>
+                      <Td className="text-slate-500">{c.comments ?? "—"}</Td>
+                    </Tr>
+                  ))}
+                </TableBody>
+              </Table>
+
+              {canDecide && activeLevel && (activeLevel.approver_id === user?.id || user?.is_superuser) && (
+                <div className="space-y-2 rounded-md border border-amber-200 bg-amber-50 p-3">
+                  <p className="text-sm text-amber-900">
+                    Level {activeLevel.sequence} is awaiting your decision
+                    {activeLevel.approver_name ? ` (${activeLevel.approver_name})` : ""}.
+                  </p>
+                  <textarea
+                    className="h-20 w-full rounded-md border border-slate-300 bg-white p-3 text-sm focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
+                    placeholder="Comments (optional)"
+                    value={comments[activeLevel.sequence] ?? ""}
+                    onChange={(e) =>
+                      setComments((prev) => ({ ...prev, [activeLevel.sequence]: e.target.value }))
+                    }
+                  />
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      disabled={decideM.isPending}
+                      onClick={() =>
+                        decideM.mutate({ sequence: activeLevel.sequence, approve: true })
+                      }
+                    >
+                      Approve level {activeLevel.sequence}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      disabled={decideM.isPending}
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            `Reject this purchase order? It will return to draft for revision.`,
+                          )
+                        ) {
+                          decideM.mutate({ sequence: activeLevel.sequence, approve: false });
+                        }
+                      }}
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+        <ServerError error={error} />
+      </div>
+    </Modal>
+  );
+}
+
+function ApprovalBadge({ status }: { status: PurchaseOrderApproval["status"] }) {
+  const cls =
+    status === "approved"
+      ? "bg-green-100 text-green-700"
+      : status === "rejected"
+        ? "bg-red-100 text-red-700"
+        : "bg-amber-100 text-amber-700";
+  return <Badge className={cls}>{status}</Badge>;
 }
 
 function PurchaseOrderDetail({

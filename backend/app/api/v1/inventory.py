@@ -412,18 +412,6 @@ async def delete_po_line(
     return None
 
 
-@purchase_orders_router.post("/{po_id}/approve", response_model=PurchaseOrderOut)
-async def approve_purchase_order(
-    po_id: int,
-    db: Annotated[Session, Depends(get_db)],
-    user: Annotated[User, Depends(require_permission("inventory:purchase_orders:approve"))],
-):
-    po = inventory_service.get_purchase_order(db, po_id)
-    if not po:
-        raise problem(404, "Not Found", "Purchase order not found.")
-    return inventory_service.approve_purchase_order(db, po, user=user)
-
-
 @purchase_orders_router.post("/{po_id}/cancel", response_model=PurchaseOrderOut)
 async def cancel_purchase_order(
     po_id: int,

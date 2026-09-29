@@ -67,6 +67,10 @@ def db_engine():
                 # Inventory
                 "warehouses", "stock_items", "stock_levels",
                 "stock_movements", "purchase_orders", "purchase_order_lines",
+                # Procurement
+                "suppliers", "rfqs", "rfq_lines",
+                "supplier_quotes", "supplier_quote_lines",
+                "purchase_order_approvals",
             }
         ])
     yield engine

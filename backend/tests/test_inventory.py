@@ -110,6 +110,32 @@ def _receipt(seeded_client, auth_headers, warehouse_id, item_id, qty, reason="se
     return resp.json()
 
 
+def _approve_po(seeded_client, auth_headers, po_id, approver_ids=(1,)):
+    """Drive a draft PO to `approved` through the Phase 9 approval chain.
+
+    Phase 9 replaced the single-step approve endpoint with an ordered,
+    multi-level chain, so Phase 8 tests approve via that chain instead.
+    """
+    resp = seeded_client.post(
+        f"/api/v1/procurement/purchase-orders/{po_id}/approvals",
+        json={"approver_ids": list(approver_ids)},
+        headers=auth_headers,
+    )
+    assert resp.status_code == 201, resp.text
+    for sequence in range(1, len(approver_ids) + 1):
+        resp = seeded_client.post(
+            f"/api/v1/procurement/purchase-orders/{po_id}/approvals/{sequence}/approve",
+            json={"comments": "auto-approved by test"},
+            headers=auth_headers,
+        )
+        assert resp.status_code == 200, resp.text
+    po = seeded_client.get(
+        f"/api/v1/inventory/purchase-orders/{po_id}", headers=auth_headers
+    ).json()
+    assert po["status"] == "approved", po["status"]
+    return po
+
+
 def _level_qty(seeded_client, auth_headers, warehouse_id, item_id):
     resp = seeded_client.get(
         f"/api/v1/inventory/stock?warehouse_id={warehouse_id}&item_id={item_id}",
@@ -525,16 +551,16 @@ def test_purchase_order_lifecycle(seeded_client, auth_headers):
         assert resp.status_code == 409
 
     if po["status"] == "draft":
-        resp = seeded_client.post(
-            f"/api/v1/inventory/purchase-orders/{po['id']}/approve", headers=auth_headers
-        )
-        assert resp.status_code == 200, resp.text
-        assert resp.json()["status"] == "approved"
-        assert resp.json()["approved_at"] is not None
+        _approve_po(seeded_client, auth_headers, po["id"])
+        po = seeded_client.get(
+            f"/api/v1/inventory/purchase-orders/{po['id']}", headers=auth_headers
+        ).json()
 
-        # double approve rejected
+        # a second approval chain cannot be built once one exists
         resp = seeded_client.post(
-            f"/api/v1/inventory/purchase-orders/{po['id']}/approve", headers=auth_headers
+            f"/api/v1/procurement/purchase-orders/{po['id']}/approvals",
+            json={"approver_ids": [1]},
+            headers=auth_headers,
         )
         assert resp.status_code == 409
 
@@ -702,10 +728,7 @@ def test_purchase_order_validation_and_edit_lock(seeded_client, auth_headers):
     assert resp.json()["total_amount"] == 11
 
     # approve then confirm edits are locked
-    resp = seeded_client.post(
-        f"/api/v1/inventory/purchase-orders/{po['id']}/approve", headers=auth_headers
-    )
-    assert resp.status_code == 200, resp.text
+    _approve_po(seeded_client, auth_headers, po["id"])
 
     resp = seeded_client.put(
         f"/api/v1/inventory/purchase-orders/{po['id']}",

@@ -548,7 +548,7 @@ def transfer_stock(
 
 
 # ── Purchase Orders ────────────────────────────────────────────────────
-def _recalc_totals(db: Session, po: PurchaseOrder) -> None:
+def recalc_purchase_order_totals(db: Session, po: PurchaseOrder) -> None:
     lines = list(po.lines)
     for line in lines:
         line.line_total = _dec(line.quantity) * _dec(line.unit_cost)
@@ -631,7 +631,7 @@ def create_purchase_order(
         )
     db.add(po)
     db.flush()
-    _recalc_totals(db, po)
+    recalc_purchase_order_totals(db, po)
     write_audit(
         db,
         user_id=user_id,
@@ -658,7 +658,7 @@ def update_purchase_order(
     for k, v in payload.items():
         setattr(po, k, v)
     db.flush()
-    _recalc_totals(db, po)
+    recalc_purchase_order_totals(db, po)
     write_audit(
         db,
         user_id=user_id,
@@ -690,7 +690,7 @@ def add_po_line(
     )
     po.lines.append(line)
     db.flush()
-    _recalc_totals(db, po)
+    recalc_purchase_order_totals(db, po)
     db.commit()
     return line
 
@@ -705,38 +705,14 @@ def delete_po_line(
     po.lines.remove(line)
     db.delete(line)
     db.flush()
-    _recalc_totals(db, po)
+    recalc_purchase_order_totals(db, po)
     db.commit()
-
-
-def approve_purchase_order(
-    db: Session, po: PurchaseOrder, *, user: User
-) -> PurchaseOrder:
-    if po.status != "draft":
-        raise problem(409, "Conflict", f"Purchase order is {po.status}, not draft.")
-    if not po.lines:
-        raise problem(400, "Bad Request", "Cannot approve a purchase order with no lines.")
-    po.status = "approved"
-    po.approved_by = user.id
-    po.approved_at = datetime.now(UTC)
-    db.flush()
-    write_audit(
-        db,
-        user_id=user.id,
-        action="purchase_order.approve",
-        entity_type="purchase_order",
-        entity_id=str(po.id),
-        new_value={"status": po.status},
-    )
-    db.commit()
-    db.refresh(po)
-    return po
 
 
 def cancel_purchase_order(
     db: Session, po: PurchaseOrder, *, user: User
 ) -> PurchaseOrder:
-    if po.status not in {"draft", "approved"}:
+    if po.status not in {"draft", "pending_approval", "approved"}:
         raise problem(409, "Conflict", f"Cannot cancel a {po.status} purchase order.")
     po.status = "cancelled"
     po.cancelled_at = datetime.now(UTC)
@@ -815,7 +791,7 @@ def receive_purchase_order(
         po.received_at = datetime.now(UTC)
     else:
         po.status = "partially_received"
-    _recalc_totals(db, po)
+    recalc_purchase_order_totals(db, po)
     write_audit(
         db,
         user_id=user_id,

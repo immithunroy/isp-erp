@@ -24,6 +24,8 @@ import { InventoryStock } from "./pages/InventoryStock";
 import { Warehouses } from "./pages/Warehouses";
 import { StockItems } from "./pages/StockItems";
 import { PurchaseOrders } from "./pages/PurchaseOrders";
+import { Suppliers } from "./pages/Suppliers";
+import { Rfqs } from "./pages/Rfqs";
 import { AppShell } from "./components/AppShell";
 
 function Protected({ children }: { children: React.ReactNode }) {
@@ -267,6 +269,26 @@ export default function App() {
           <Protected>
             <AppShell>
               <PurchaseOrders />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/procurement/suppliers"
+        element={
+          <Protected>
+            <AppShell>
+              <Suppliers />
+            </AppShell>
+          </Protected>
+        }
+      />
+      <Route
+        path="/procurement/rfqs"
+        element={
+          <Protected>
+            <AppShell>
+              <Rfqs />
             </AppShell>
           </Protected>
         }

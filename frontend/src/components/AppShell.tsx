@@ -60,8 +60,12 @@ const INVENTORY_ITEMS: NavItem[] = [
   },
 ];
 
+const PROCUREMENT_ITEMS: NavItem[] = [
+  { label: "Suppliers", to: "/procurement/suppliers", permission: "procurement:suppliers:read" },
+  { label: "RFQs", to: "/procurement/rfqs", permission: "procurement:rfq:read" },
+];
+
 const FUTURE_GROUPS: { label: string; items: string[] }[] = [
-  { label: "Procurement", items: ["Suppliers", "Receiving"] },
   { label: "Accounting", items: ["Chart of Accounts", "Journal", "Ledger", "Reports"] },
 ];
 
@@ -90,6 +94,9 @@ export function AppShell({ children }: { children: ReactNode }) {
     return hasAnyNetwork;
   });
   const visibleInventory = INVENTORY_ITEMS.filter(
+    (item) => !item.permission || hasPermission(item.permission),
+  );
+  const visibleProcurement = PROCUREMENT_ITEMS.filter(
     (item) => !item.permission || hasPermission(item.permission),
   );
 
@@ -245,6 +252,29 @@ export function AppShell({ children }: { children: ReactNode }) {
               </div>
               <ul className="mt-1 space-y-1">
                 {visibleInventory.map((item) => (
+                  <li key={item.to}>
+                    <NavLink
+                      to={item.to}
+                      className={({ isActive }) =>
+                        "block rounded px-2 py-1.5 text-slate-700 hover:bg-slate-100 " +
+                        (isActive ? "bg-slate-100 font-medium text-brand" : "")
+                      }
+                    >
+                      {item.label}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {visibleProcurement.length > 0 && (
+            <div>
+              <div className="px-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+                Procurement
+              </div>
+              <ul className="mt-1 space-y-1">
+                {visibleProcurement.map((item) => (
                   <li key={item.to}>
                     <NavLink
                       to={item.to}
